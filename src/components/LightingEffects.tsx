@@ -73,6 +73,7 @@ export const LightingEffects: React.FC<LightingEffectsProps> = ({ lighting, devi
   const [brightness, setBrightness] = useState(100);
   const [speed, setSpeed] = useState(50);
   const [customColor, setCustomColor] = useState('#00E6CC');
+  const [customColorEnabled, setCustomColorEnabled] = useState(false);
   const [backlightEnabled, setBacklightEnabled] = useState(true);
   const [sidelightEnabled, setSidelightEnabled] = useState(true);
 
@@ -228,12 +229,15 @@ export const LightingEffects: React.FC<LightingEffectsProps> = ({ lighting, devi
       <div className="flex-1 bg-white rounded-2xl p-6 border border-gray-200 flex flex-col shadow-sm min-w-[300px]">
          <div className="flex justify-between items-center mb-6">
             <h3 className="text-sm font-bold text-gray-900">Custom Color</h3>
-            <div className="w-11 h-6 bg-gray-200 rounded-full relative cursor-pointer">
-               <div className="w-4 h-4 bg-white rounded-full absolute top-1 left-1 shadow-sm"></div>
+            <div 
+              className={cn("w-11 h-6 rounded-full relative cursor-pointer transition-colors", customColorEnabled ? "bg-[#00E6CC]" : "bg-gray-200")}
+              onClick={() => setCustomColorEnabled(!customColorEnabled)}
+            >
+               <div className={cn("w-4 h-4 bg-white rounded-full absolute top-1 shadow-sm transition-all", customColorEnabled ? "left-6" : "left-1")}></div>
             </div>
          </div>
 
-         <div className="flex flex-col xl:flex-row gap-8 h-full">
+         <div className={cn("flex flex-col xl:flex-row gap-8 h-full transition-opacity", customColorEnabled ? "opacity-100" : "opacity-50 pointer-events-none")}>
             {/* Color Picker Area */}
             <div className="flex-1 flex flex-col gap-4 max-w-[300px]">
                <div 
