@@ -18,7 +18,7 @@ import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, TouchSen
 export default function App() {
   const { deviceState, requestDevice, enableDemoMode, refreshState, loading, config, lighting, setKeycode } = useKeyboard();
   const [activeLayer, setActiveLayer] = useState(0);
-  const [activeTab, setActiveTab] = useState<'Key Bindings' | 'Trigger Settings' | 'Advanced Functions' | 'Lighting Effects' | 'Macro Recording' | 'Mode Settings'>('Key Bindings');
+  const [activeTab, setActiveTab] = useState<'Trigger Settings' | 'Key Bindings' | 'Advanced Functions' | 'Lighting Effects' | 'Macro Recording' | 'Switch Selection' | 'Mode Settings'>('Lighting Effects');
   const [selectedKey, setSelectedKey] = useState<{row: number, col: number, label: string} | null>(null);
   const [showKeyTest, setShowKeyTest] = useState(false);
   const [osMode, setOsMode] = useState<'Mac' | 'Win'>('Mac');
@@ -354,7 +354,7 @@ export default function App() {
           <div className="w-full max-w-[1400px] flex-1 bg-white rounded-[24px] shadow-xl border border-gray-200 overflow-hidden flex flex-col mt-8">
              {/* Tabs */}
              <div className="flex items-center px-8 pt-6 gap-8 border-b border-gray-100 bg-[#FAFAFA]">
-                {['Key Bindings', 'Trigger Settings', 'Advanced Functions', 'Lighting Effects', 'Macro Recording', 'Mode Settings'].map(tab => (
+                {['Trigger Settings', 'Key Bindings', 'Advanced Functions', 'Lighting Effects', 'Macro Recording', 'Switch Selection', 'Mode Settings'].map(tab => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab as any)}

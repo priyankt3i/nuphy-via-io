@@ -8,8 +8,11 @@ export const VIA_COMMAND_ID = {
   DYNAMIC_KEYMAP_GET_KEYCODE: 0x04,
   DYNAMIC_KEYMAP_SET_KEYCODE: 0x05,
   DYNAMIC_KEYMAP_RESET: 0x06,
-  LIGHTING_SET_VALUE: 0x07,
-  LIGHTING_GET_VALUE: 0x08,
+  CUSTOM_SET_VALUE: 0x07,
+  CUSTOM_GET_VALUE: 0x08,
+  CUSTOM_SAVE: 0x09,
+  EEPROM_RESET: 0x0A,
+  BOOTLOADER_JUMP: 0x0B,
   DYNAMIC_KEYMAP_MACRO_GET_COUNT: 0x0C,
   DYNAMIC_KEYMAP_MACRO_GET_BUFFER_SIZE: 0x0D,
   DYNAMIC_KEYMAP_MACRO_GET_BUFFER: 0x0E,
@@ -18,6 +21,8 @@ export const VIA_COMMAND_ID = {
   DYNAMIC_KEYMAP_GET_LAYER_COUNT: 0x11,
   DYNAMIC_KEYMAP_GET_BUFFER: 0x12,
   DYNAMIC_KEYMAP_SET_BUFFER: 0x13,
+  DYNAMIC_KEYMAP_GET_ENCODER: 0x14,
+  DYNAMIC_KEYMAP_SET_ENCODER: 0x15,
 };
 
 // Keyboard Value IDs (for GET_KEYBOARD_VALUE)
@@ -29,14 +34,13 @@ export const VIA_KEYBOARD_VALUE_ID = {
   DEVICE_INDICATION: 0x05,
 };
 
-// Lighting Value IDs (Matching NuPhy Air75 V2 JSON)
-// Channel 3 in JSON implies SET_KEYBOARD_VALUE (0x03) / GET_KEYBOARD_VALUE (0x02)
+// Lighting Value IDs (Matching NuPhy Air75 V2 JSON Custom Menu)
+export const NUPHY_LIGHTING_CHANNEL = 3;
 export const VIA_LIGHTING_VALUE_ID = {
-  // These override the standard keyboard values for this device
-  RGB_MATRIX_BRIGHTNESS: 0x01,
-  RGB_MATRIX_EFFECT: 0x02,
-  RGB_MATRIX_EFFECT_SPEED: 0x03,
-  RGB_MATRIX_COLOR: 0x04,
+  BRIGHTNESS: 0x01,
+  EFFECT: 0x02,
+  EFFECT_SPEED: 0x03,
+  COLOR: 0x04,
 };
 
 export interface ViaCommandOptions {
@@ -217,32 +221,31 @@ export async function loadKeymapLayer(
  * Gets the RGB Backlight Brightness (RGB Matrix)
  */
 export async function getBacklightBrightness(device: HIDDevice): Promise<number> {
-    const response = await sendViaCommand(device, VIA_COMMAND_ID.GET_KEYBOARD_VALUE, [
-        VIA_LIGHTING_VALUE_ID.RGB_MATRIX_BRIGHTNESS
+    const response = await sendViaCommand(device, VIA_COMMAND_ID.CUSTOM_GET_VALUE, [
+        NUPHY_LIGHTING_CHANNEL,
+        VIA_LIGHTING_VALUE_ID.BRIGHTNESS
     ]);
-    return response[1]; // Value is usually in byte 1 for GET_KEYBOARD_VALUE response? No, let's check.
-    // Response to GET_KEYBOARD_VALUE (0x02) is usually: [0x02, ValueID, Data...]
-    // So response[2] should be the data byte?
-    // Wait, if I send [0x02, ID], response is [0x02, ID, Data...] ?
-    // Let's assume response[2] is the data.
+    return response[3]; // Response: [ID, Channel, ValueID, Data...]
 }
 
 /**
  * Gets the RGB Backlight Effect (RGB Matrix)
  */
 export async function getBacklightEffect(device: HIDDevice): Promise<number> {
-    const response = await sendViaCommand(device, VIA_COMMAND_ID.GET_KEYBOARD_VALUE, [
-        VIA_LIGHTING_VALUE_ID.RGB_MATRIX_EFFECT
+    const response = await sendViaCommand(device, VIA_COMMAND_ID.CUSTOM_GET_VALUE, [
+        NUPHY_LIGHTING_CHANNEL,
+        VIA_LIGHTING_VALUE_ID.EFFECT
     ]);
-    return response[2];
+    return response[3];
 }
 
 /**
  * Sets the RGB Backlight Brightness (RGB Matrix)
  */
 export async function setBacklightBrightness(device: HIDDevice, brightness: number): Promise<void> {
-    await sendViaCommand(device, VIA_COMMAND_ID.SET_KEYBOARD_VALUE, [
-        VIA_LIGHTING_VALUE_ID.RGB_MATRIX_BRIGHTNESS,
+    await sendViaCommand(device, VIA_COMMAND_ID.CUSTOM_SET_VALUE, [
+        NUPHY_LIGHTING_CHANNEL,
+        VIA_LIGHTING_VALUE_ID.BRIGHTNESS,
         brightness
     ]);
 }
@@ -251,8 +254,9 @@ export async function setBacklightBrightness(device: HIDDevice, brightness: numb
  * Sets the RGB Backlight Effect (RGB Matrix)
  */
 export async function setBacklightEffect(device: HIDDevice, effect: number): Promise<void> {
-    await sendViaCommand(device, VIA_COMMAND_ID.SET_KEYBOARD_VALUE, [
-        VIA_LIGHTING_VALUE_ID.RGB_MATRIX_EFFECT,
+    await sendViaCommand(device, VIA_COMMAND_ID.CUSTOM_SET_VALUE, [
+        NUPHY_LIGHTING_CHANNEL,
+        VIA_LIGHTING_VALUE_ID.EFFECT,
         effect
     ]);
 }
@@ -261,8 +265,9 @@ export async function setBacklightEffect(device: HIDDevice, effect: number): Pro
  * Sets the RGB Backlight Effect Speed (RGB Matrix)
  */
 export async function setBacklightEffectSpeed(device: HIDDevice, speed: number): Promise<void> {
-    await sendViaCommand(device, VIA_COMMAND_ID.SET_KEYBOARD_VALUE, [
-        VIA_LIGHTING_VALUE_ID.RGB_MATRIX_EFFECT_SPEED,
+    await sendViaCommand(device, VIA_COMMAND_ID.CUSTOM_SET_VALUE, [
+        NUPHY_LIGHTING_CHANNEL,
+        VIA_LIGHTING_VALUE_ID.EFFECT_SPEED,
         speed
     ]);
 }
@@ -271,8 +276,9 @@ export async function setBacklightEffectSpeed(device: HIDDevice, speed: number):
  * Sets the RGB Backlight Color (RGB Matrix)
  */
 export async function setBacklightColor(device: HIDDevice, hue: number, sat: number): Promise<void> {
-    await sendViaCommand(device, VIA_COMMAND_ID.SET_KEYBOARD_VALUE, [
-        VIA_LIGHTING_VALUE_ID.RGB_MATRIX_COLOR,
+    await sendViaCommand(device, VIA_COMMAND_ID.CUSTOM_SET_VALUE, [
+        NUPHY_LIGHTING_CHANNEL,
+        VIA_LIGHTING_VALUE_ID.COLOR,
         hue,
         sat
     ]);

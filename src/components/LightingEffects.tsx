@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { cn } from '../lib/utils';
-import { Sun, Zap, Activity, Waves, MousePointer, Grid, Clock, CloudRain, Wind, MoveDiagonal, ArrowRight, ArrowLeft, ArrowUp, ArrowDown } from 'lucide-react';
+import { 
+  PowerOff, Square, ArrowDownUp, ArrowLeftRight, Activity,
+  List, Aperture, RefreshCw, RefreshCcw, Palette,
+  CloudRain, CloudDrizzle, Waves, Flame, Binary,
+  MousePointer2, Target, Droplets, Crosshair, Maximize, MoveDiagonal,
+  Keyboard as KeyboardIcon
+} from 'lucide-react';
 import { DeviceState } from '../types';
 
 interface LightingEffectsProps {
@@ -13,73 +19,80 @@ interface LightingEffectsProps {
   deviceState?: DeviceState;
 }
 
+// Actual QMK RGB Matrix effects from NuPhy Air75 V2 JSON
 const LIGHTING_EFFECTS = [
-  { id: 'ray', label: 'Ray', icon: <Sun className="w-5 h-5" />, value: 1 },
-  { id: 'stair', label: 'Stair', icon: <div className="w-5 h-5 flex items-end justify-center gap-0.5"><div className="w-1 h-2 bg-current"></div><div className="w-1 h-3 bg-current"></div><div className="w-1 h-4 bg-current"></div></div>, value: 2 },
-  { id: 'static', label: 'Static', icon: <div className="w-5 h-5 border-b-2 border-current"></div>, value: 3 },
-  { id: 'breath', label: 'Breath', icon: <Activity className="w-5 h-5" />, value: 4 },
-  { id: 'flower', label: 'Flower', icon: <Zap className="w-5 h-5" />, value: 5 },
-  { id: 'wave', label: 'Wave', icon: <Waves className="w-5 h-5" />, value: 6 },
-  { id: 'ripple', label: 'Ripple', icon: <div className="w-5 h-5 rounded-full border border-current flex items-center justify-center"><div className="w-2 h-2 rounded-full border border-current"></div></div>, value: 7 },
-  { id: 'spout', label: 'Spout', icon: <div className="w-5 h-5 flex justify-center"><div className="w-1 h-full bg-current rotate-45"></div></div>, value: 8 },
-  { id: 'galaxy', label: 'Galaxy', icon: <div className="w-5 h-5 grid grid-cols-2 gap-0.5"><div className="bg-current rounded-full"></div><div className="bg-current rounded-full opacity-50"></div><div className="bg-current rounded-full opacity-50"></div><div className="bg-current rounded-full"></div></div>, value: 9 },
-  { id: 'rotation', label: 'Rotation', icon: <RotateIcon />, value: 10 },
-  { id: 'point', label: 'Point', icon: <MousePointer className="w-5 h-5" />, value: 11 },
-  { id: 'grid', label: 'Grid', icon: <Grid className="w-5 h-5" />, value: 12 },
-  { id: 'time', label: 'Time', icon: <Clock className="w-5 h-5" />, value: 13 },
-  { id: 'rain', label: 'Rain', icon: <CloudRain className="w-5 h-5" />, value: 14 },
-  { id: 'ribbon', label: 'Ribbon', icon: <Wind className="w-5 h-5" />, value: 15 },
-  { id: 'diagonal', label: 'Diagonal', icon: <MoveDiagonal className="w-5 h-5" />, value: 16 },
+  { id: 'all_off', label: 'All Off', icon: <PowerOff className="w-5 h-5" />, value: 0 },
+  { id: 'solid', label: 'Solid Color', icon: <Square className="w-5 h-5" />, value: 1 },
+  { id: 'grad_ud', label: 'Gradient U/D', icon: <ArrowDownUp className="w-5 h-5" />, value: 2 },
+  { id: 'grad_lr', label: 'Gradient L/R', icon: <ArrowLeftRight className="w-5 h-5" />, value: 3 },
+  { id: 'breathing', label: 'Breathing', icon: <Activity className="w-5 h-5" />, value: 4 },
+  { id: 'band_sat', label: 'Band Sat.', icon: <List className="w-5 h-5" />, value: 5 },
+  { id: 'band_val', label: 'Band Val.', icon: <List className="w-5 h-5" />, value: 6 },
+  { id: 'pinwheel_sat', label: 'Pinwheel Sat.', icon: <Aperture className="w-5 h-5" />, value: 7 },
+  { id: 'pinwheel_val', label: 'Pinwheel Val.', icon: <Aperture className="w-5 h-5" />, value: 8 },
+  { id: 'spiral_sat', label: 'Spiral Sat.', icon: <RefreshCw className="w-5 h-5" />, value: 9 },
+  { id: 'spiral_val', label: 'Spiral Val.', icon: <RefreshCw className="w-5 h-5" />, value: 10 },
+  { id: 'cycle_all', label: 'Cycle All', icon: <RefreshCcw className="w-5 h-5" />, value: 11 },
+  { id: 'cycle_lr', label: 'Cycle L/R', icon: <ArrowLeftRight className="w-5 h-5" />, value: 12 },
+  { id: 'cycle_ud', label: 'Cycle U/D', icon: <ArrowDownUp className="w-5 h-5" />, value: 13 },
+  { id: 'rainbow_chev', label: 'Rainbow Chev.', icon: <Palette className="w-5 h-5" />, value: 14 },
+  { id: 'cycle_out_in', label: 'Cycle Out/In', icon: <Maximize className="w-5 h-5" />, value: 15 },
+  { id: 'cycle_out_in_dual', label: 'Cycle Out/In Dual', icon: <Maximize className="w-5 h-5" />, value: 16 },
+  { id: 'cycle_pinwheel', label: 'Cycle Pinwheel', icon: <Aperture className="w-5 h-5" />, value: 17 },
+  { id: 'cycle_spiral', label: 'Cycle Spiral', icon: <RefreshCw className="w-5 h-5" />, value: 18 },
+  { id: 'dual_beacon', label: 'Dual Beacon', icon: <Target className="w-5 h-5" />, value: 19 },
+  { id: 'rainbow_beacon', label: 'Rainbow Beacon', icon: <Target className="w-5 h-5" />, value: 20 },
+  { id: 'rainbow_pinwheels', label: 'Rainbow Pinwheels', icon: <Aperture className="w-5 h-5" />, value: 21 },
+  { id: 'raindrops', label: 'Raindrops', icon: <CloudRain className="w-5 h-5" />, value: 22 },
+  { id: 'jellybean_raindrops', label: 'Jellybean Rain', icon: <CloudDrizzle className="w-5 h-5" />, value: 23 },
+  { id: 'hue_breathing', label: 'Hue Breathing', icon: <Activity className="w-5 h-5" />, value: 24 },
+  { id: 'hue_pendulum', label: 'Hue Pendulum', icon: <MoveDiagonal className="w-5 h-5" />, value: 25 },
+  { id: 'hue_wave', label: 'Hue Wave', icon: <Waves className="w-5 h-5" />, value: 26 },
+  { id: 'typing_heatmap', label: 'Typing Heatmap', icon: <Flame className="w-5 h-5" />, value: 27 },
+  { id: 'digital_rain', label: 'Digital Rain', icon: <Binary className="w-5 h-5" />, value: 28 },
+  { id: 'reactive_simple', label: 'Reactive Simple', icon: <MousePointer2 className="w-5 h-5" />, value: 29 },
+  { id: 'reactive', label: 'Reactive', icon: <MousePointer2 className="w-5 h-5" />, value: 30 },
+  { id: 'reactive_wide', label: 'Reactive Wide', icon: <ArrowLeftRight className="w-5 h-5" />, value: 31 },
+  { id: 'reactive_multiwide', label: 'Reactive Multiwide', icon: <ArrowLeftRight className="w-5 h-5" />, value: 32 },
+  { id: 'reactive_cross', label: 'Reactive Cross', icon: <Crosshair className="w-5 h-5" />, value: 33 },
+  { id: 'reactive_multicross', label: 'Reactive Multicross', icon: <Crosshair className="w-5 h-5" />, value: 34 },
+  { id: 'reactive_nexus', label: 'Reactive Nexus', icon: <Target className="w-5 h-5" />, value: 35 },
+  { id: 'reactive_multinexus', label: 'Reactive MultiNexus', icon: <Target className="w-5 h-5" />, value: 36 },
+  { id: 'splash', label: 'Splash', icon: <Droplets className="w-5 h-5" />, value: 37 },
+  { id: 'multisplash', label: 'MultiSplash', icon: <Droplets className="w-5 h-5" />, value: 38 },
+  { id: 'solid_splash', label: 'Solid Splash', icon: <Droplets className="w-5 h-5" />, value: 39 },
+  { id: 'solid_multisplash', label: 'Solid MultiSplash', icon: <Droplets className="w-5 h-5" />, value: 40 },
 ];
 
 const COLOR_PRESETS = [
   '#FF5722', '#FFEB3B', '#00E676', '#2979FF', '#651FFF', '#F50057', '#D50000', '#FFC107', '#00B0FF', '#76FF03', '#3D5AFE', '#E040FB'
 ];
 
-function RotateIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 12" />
-      <path d="M21 3v9h-9" />
-    </svg>
-  );
-}
-
 export const LightingEffects: React.FC<LightingEffectsProps> = ({ lighting, deviceState }) => {
-  const [activeEffect, setActiveEffect] = useState('stair');
+  const [activeEffect, setActiveEffect] = useState(3); // Default to Stair (value 3)
   const [brightness, setBrightness] = useState(100);
   const [speed, setSpeed] = useState(50);
-  const [customColor, setCustomColor] = useState('#00BCD4');
+  const [customColor, setCustomColor] = useState('#00E6CC');
   const [backlightEnabled, setBacklightEnabled] = useState(true);
   const [sidelightEnabled, setSidelightEnabled] = useState(true);
-  const [glowEdgeEnabled, setGlowEdgeEnabled] = useState(true);
-  const [direction, setDirection] = useState<'left' | 'right' | 'up' | 'down'>('right');
 
   // Initialize from device state
   useEffect(() => {
     if (deviceState?.lighting) {
       setBrightness(Math.round((deviceState.lighting.brightness / 255) * 100));
-      // Map effect ID to our internal ID if possible
-      const effect = LIGHTING_EFFECTS.find(e => e.value === deviceState.lighting?.effect);
-      if (effect) {
-        setActiveEffect(effect.id);
-      }
+      setActiveEffect(deviceState.lighting.effect || 3);
     }
   }, [deviceState]);
 
   const handleBrightnessChange = (value: number) => {
     setBrightness(value);
-    // Convert 0-100 to 0-255
     const byteValue = Math.round((value / 100) * 255);
     lighting?.setBrightness(byteValue);
   };
 
-  const handleEffectChange = (effectId: string) => {
-    setActiveEffect(effectId);
-    const effect = LIGHTING_EFFECTS.find(e => e.id === effectId);
-    if (effect) {
-      lighting?.setEffect(effect.value);
-    }
+  const handleEffectChange = (effectValue: number) => {
+    setActiveEffect(effectValue);
+    lighting?.setEffect(effectValue);
   };
 
   const handleSpeedChange = (value: number) => {
@@ -90,211 +103,180 @@ export const LightingEffects: React.FC<LightingEffectsProps> = ({ lighting, devi
 
   const handleColorChange = (color: string) => {
     setCustomColor(color);
-    // Convert Hex to HSV (Hue, Saturation) for QMK
-    // This is a simplified conversion
-    // QMK Hue is 0-255, Sat is 0-255
-    
-    // Simple mock conversion for now
-    // In a real app, we'd parse the hex to RGB then to HSV
-    lighting?.setColor(0, 255); 
+    // Simple mock conversion for now: Hue 0-255, Sat 255
+    lighting?.setColor(128, 255); 
   };
 
   return (
-    <div className="flex h-full w-full">
-      {/* Left Panel: Effect Selection */}
-      <div className="w-[320px] border-r border-gray-100 p-6 flex flex-col gap-6 overflow-y-auto">
-        
-        {/* Back Light Settings Card */}
-        <div className="bg-[#333] text-white rounded-xl p-4 relative overflow-hidden group">
-           <div className="relative z-10 flex justify-between items-end">
-              <div>
-                <h3 className="text-xs font-bold mb-1">Back Light Settings</h3>
-                <p className="text-[10px] text-gray-400">Set the keyboard's Back Light effect</p>
-              </div>
-              <div 
-                className={cn("w-10 h-5 rounded-full relative cursor-pointer transition-colors", backlightEnabled ? "bg-[#00E6CC]" : "bg-gray-600")}
-                onClick={() => {
-                   const newState = !backlightEnabled;
-                   setBacklightEnabled(newState);
-                   if (!newState) lighting?.setBrightness(0);
-                   else lighting?.setBrightness(Math.round((brightness / 100) * 255));
-                }}
-              >
-                 <div className={cn("w-3 h-3 bg-white rounded-full absolute top-1 shadow-sm transition-all", backlightEnabled ? "left-6" : "left-1")}></div>
-              </div>
-           </div>
-           <div className="absolute top-2 right-2 opacity-10">
-              <Grid className="w-16 h-16" />
-           </div>
-        </div>
-
-        {/* Side Light Settings Card */}
-        <div className="bg-white border border-gray-200 text-gray-800 rounded-xl p-4 relative overflow-hidden group">
-           <div className="relative z-10 flex justify-between items-end">
-              <div>
-                <h3 className="text-xs font-bold mb-1">Side Light Settings</h3>
-                <p className="text-[10px] text-gray-400">Set the keyboard's Side Light effect</p>
-              </div>
-              <div 
-                className={cn("w-10 h-5 rounded-full relative cursor-pointer transition-colors", sidelightEnabled ? "bg-[#00E6CC]" : "bg-gray-200")}
-                onClick={() => setSidelightEnabled(!sidelightEnabled)}
-              >
-                 <div className={cn("w-3 h-3 bg-white rounded-full absolute top-1 shadow-sm transition-all", sidelightEnabled ? "left-6" : "left-1")}></div>
-              </div>
-           </div>
-        </div>
-
-        {/* GlowEdge Settings Card */}
-        <div className="bg-white border border-gray-200 text-gray-800 rounded-xl p-4 relative overflow-hidden group">
-           <div className="relative z-10 flex justify-between items-end">
-              <div>
-                <h3 className="text-xs font-bold mb-1">GlowEdge Settings</h3>
-                <p className="text-[10px] text-gray-400">Set the keyboard's GlowEdge effect</p>
-              </div>
-              <div 
-                className={cn("w-10 h-5 rounded-full relative cursor-pointer transition-colors", glowEdgeEnabled ? "bg-[#00E6CC]" : "bg-gray-200")}
-                onClick={() => setGlowEdgeEnabled(!glowEdgeEnabled)}
-              >
-                 <div className={cn("w-3 h-3 bg-white rounded-full absolute top-1 shadow-sm transition-all", glowEdgeEnabled ? "left-6" : "left-1")}></div>
-              </div>
-           </div>
-        </div>
-
-        {/* Effects Grid */}
-        <div>
-           <h3 className="text-xs font-bold text-gray-900 mb-4">Lighting Settings</h3>
-           <div className="grid grid-cols-4 gap-2">
-              {LIGHTING_EFFECTS.map((effect) => (
-                <button
-                  key={effect.id}
-                  onClick={() => handleEffectChange(effect.id)}
-                  className={cn(
-                    "aspect-square rounded-lg flex flex-col items-center justify-center gap-2 transition-all",
-                    activeEffect === effect.id
-                      ? "bg-[#333] text-white shadow-md"
-                      : "bg-white border border-gray-100 text-gray-500 hover:border-gray-300 hover:text-gray-900"
-                  )}
-                >
-                  {effect.icon}
-                  <span className="text-[9px] font-medium">{effect.label}</span>
-                </button>
-              ))}
-           </div>
-        </div>
-      </div>
-
-      {/* Middle Panel: Sliders */}
-      <div className="w-[240px] border-r border-gray-100 p-6 flex flex-col gap-8">
-         <div className="space-y-4">
-            <div className="flex justify-between items-center">
-               <label className="text-xs font-bold text-gray-900">Brightness</label>
-               <span className="text-xs font-bold text-gray-500">{brightness}%</span>
+    <div className="flex h-full w-full bg-[#f5f5f5] p-6 gap-4 overflow-hidden">
+      
+      {/* Area 1: Toggles */}
+      <div className="w-[260px] flex flex-col gap-4">
+         {/* Back Light Settings Card */}
+         <div className="bg-[#2A2A2A] rounded-2xl p-4 text-white flex flex-col gap-4 relative overflow-hidden shadow-lg">
+            {/* Graphic */}
+            <div className="h-28 bg-[#1A1A1A] rounded-xl flex items-center justify-center border border-[#00E6CC]/30 shadow-[0_0_20px_rgba(0,230,204,0.15)] relative overflow-hidden">
+               <KeyboardIcon className="w-20 h-20 text-[#00E6CC] opacity-80" strokeWidth={1} />
+               <div className="absolute inset-0 bg-gradient-to-t from-[#00E6CC]/10 to-transparent"></div>
             </div>
-            <input 
-              type="range" 
-              min="0" 
-              max="100" 
-              value={brightness} 
-              onChange={(e) => handleBrightnessChange(parseInt(e.target.value))}
-              className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#333]" 
-            />
-            <div className="flex justify-between text-[9px] text-gray-400 font-mono">
-               <span>0</span><span>20%</span><span>40%</span><span>60%</span><span>80%</span><span>100%</span>
-            </div>
-         </div>
-
-         <div className="space-y-4">
-            <div className="flex justify-between items-center">
-               <label className="text-xs font-bold text-gray-900">Speed</label>
-               <span className="text-xs font-bold text-gray-500">{speed}%</span>
-            </div>
-            <input 
-              type="range" 
-              min="0" 
-              max="100" 
-              value={speed} 
-              onChange={(e) => handleSpeedChange(parseInt(e.target.value))}
-              className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#333]" 
-            />
-         </div>
-
-         <div className="space-y-4">
-            <label className="text-xs font-bold text-gray-900">Direction</label>
-            <div className="grid grid-cols-4 gap-2">
-               {[
-                 { id: 'left', icon: <ArrowLeft className="w-4 h-4" /> },
-                 { id: 'right', icon: <ArrowRight className="w-4 h-4" /> },
-                 { id: 'up', icon: <ArrowUp className="w-4 h-4" /> },
-                 { id: 'down', icon: <ArrowDown className="w-4 h-4" /> }
-               ].map((dir) => (
-                 <button
-                   key={dir.id}
-                   onClick={() => setDirection(dir.id as any)}
-                   className={cn(
-                     "h-8 rounded-lg flex items-center justify-center border transition-all",
-                     direction === dir.id
-                       ? "bg-[#333] text-white border-[#333]"
-                       : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
-                   )}
-                 >
-                   {dir.icon}
-                 </button>
-               ))}
-            </div>
-         </div>
-      </div>
-
-      {/* Right Panel: Color Picker */}
-      <div className="flex-1 p-6">
-         <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xs font-bold text-gray-900">Custom Color</h3>
-            <div className="w-10 h-5 bg-gray-200 rounded-full relative cursor-pointer">
-               <div className="w-3 h-3 bg-white rounded-full absolute top-1 left-1 shadow-sm"></div>
-            </div>
-         </div>
-
-         <div className="flex gap-6">
-            {/* Color Picker Area */}
-            <div className="w-64 space-y-4">
+            <div className="flex justify-between items-center z-10 mt-2">
+               <div>
+                 <h3 className="text-sm font-bold tracking-tight">Back Light Settings</h3>
+                 <p className="text-[10px] text-gray-400 leading-tight mt-1">Set the keyboard's Back Light<br/>effect</p>
+               </div>
                <div 
-                 className="w-full aspect-square rounded-xl shadow-inner relative"
+                 className={cn("w-11 h-6 rounded-full relative cursor-pointer transition-colors", backlightEnabled ? "bg-[#00E6CC]" : "bg-gray-600")}
+                 onClick={() => {
+                    const newState = !backlightEnabled;
+                    setBacklightEnabled(newState);
+                    if (!newState) lighting?.setBrightness(0);
+                    else lighting?.setBrightness(Math.round((brightness / 100) * 255));
+                 }}
+               >
+                  <div className={cn("w-4 h-4 bg-white rounded-full absolute top-1 shadow-sm transition-all", backlightEnabled ? "left-6" : "left-1")}></div>
+               </div>
+            </div>
+         </div>
+
+         {/* Side Light Settings Card */}
+         <div className="bg-white rounded-2xl p-4 text-gray-800 flex flex-col gap-4 border border-gray-200 shadow-sm">
+            {/* Graphic */}
+            <div className="h-28 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100">
+               <KeyboardIcon className="w-20 h-20 text-gray-300" strokeWidth={1} />
+            </div>
+            <div className="flex justify-between items-center mt-2">
+               <div>
+                 <h3 className="text-sm font-bold tracking-tight">Side Light Settings</h3>
+                 <p className="text-[10px] text-gray-400 leading-tight mt-1">Set the keyboard's Side Light<br/>effect</p>
+               </div>
+               <div 
+                 className={cn("w-11 h-6 rounded-full relative cursor-pointer transition-colors", sidelightEnabled ? "bg-[#00E6CC]" : "bg-gray-200")}
+                 onClick={() => setSidelightEnabled(!sidelightEnabled)}
+               >
+                  <div className={cn("w-4 h-4 bg-white rounded-full absolute top-1 shadow-sm transition-all", sidelightEnabled ? "left-6" : "left-1")}></div>
+               </div>
+            </div>
+         </div>
+      </div>
+
+      {/* Area 2: Effects Grid */}
+      <div className="w-[340px] bg-white rounded-2xl p-6 border border-gray-200 flex flex-col shadow-sm">
+         <h3 className="text-sm font-bold text-gray-900 mb-4">Lighting Settings</h3>
+         <div className="grid grid-cols-4 gap-3 overflow-y-auto pr-2 pb-4 custom-scrollbar">
+            {LIGHTING_EFFECTS.map((effect) => (
+              <button
+                key={effect.id}
+                onClick={() => handleEffectChange(effect.value)}
+                className={cn(
+                  "aspect-square rounded-xl flex flex-col items-center justify-center gap-2 transition-all duration-200",
+                  activeEffect === effect.value
+                    ? "bg-[#2A2A2A] text-white shadow-md scale-105"
+                    : "bg-white border border-gray-100 text-gray-500 hover:border-gray-300 hover:text-gray-900 hover:bg-gray-50"
+                )}
+              >
+                {effect.icon}
+                <span className="text-[10px] font-medium tracking-tight">{effect.label}</span>
+              </button>
+            ))}
+         </div>
+      </div>
+
+      {/* Area 3: Sliders */}
+      <div className="w-[280px] bg-white rounded-2xl p-6 border border-gray-200 flex flex-col gap-10 shadow-sm">
+         <div className="space-y-6">
+            <div className="flex justify-between items-center">
+               <label className="text-sm font-bold text-gray-900">Brightness</label>
+               <span className="text-sm font-bold text-gray-500">{brightness}%</span>
+            </div>
+            <div className="relative pt-2">
+              <input 
+                type="range" 
+                min="0" 
+                max="100" 
+                value={brightness} 
+                onChange={(e) => handleBrightnessChange(parseInt(e.target.value))}
+                className="w-full h-2 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-[#2A2A2A]" 
+              />
+              <div className="flex justify-between text-[10px] text-gray-400 font-medium mt-3 px-1">
+                 <span>0</span><span>20%</span><span>40%</span><span>60%</span><span>80%</span><span>100%</span>
+              </div>
+            </div>
+         </div>
+
+         <div className="space-y-6">
+            <div className="flex justify-between items-center">
+               <label className="text-sm font-bold text-gray-900">Speed</label>
+               <span className="text-sm font-bold text-gray-500">{speed}%</span>
+            </div>
+            <div className="relative pt-2">
+              <input 
+                type="range" 
+                min="0" 
+                max="100" 
+                value={speed} 
+                onChange={(e) => handleSpeedChange(parseInt(e.target.value))}
+                className="w-full h-2 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-[#2A2A2A]" 
+              />
+              <div className="flex justify-between text-[10px] text-gray-400 font-medium mt-3 px-1">
+                 <span>0</span><span>20%</span><span>40%</span><span>60%</span><span>80%</span><span>100%</span>
+              </div>
+            </div>
+         </div>
+      </div>
+
+      {/* Area 4: Color Picker */}
+      <div className="flex-1 bg-white rounded-2xl p-6 border border-gray-200 flex flex-col shadow-sm min-w-[300px]">
+         <div className="flex justify-between items-center mb-6">
+            <h3 className="text-sm font-bold text-gray-900">Custom Color</h3>
+            <div className="w-11 h-6 bg-gray-200 rounded-full relative cursor-pointer">
+               <div className="w-4 h-4 bg-white rounded-full absolute top-1 left-1 shadow-sm"></div>
+            </div>
+         </div>
+
+         <div className="flex flex-col xl:flex-row gap-8 h-full">
+            {/* Color Picker Area */}
+            <div className="flex-1 flex flex-col gap-4 max-w-[300px]">
+               <div 
+                 className="w-full aspect-square rounded-2xl shadow-inner relative border border-gray-100"
                  style={{ background: `linear-gradient(to bottom, transparent, black), linear-gradient(to right, white, ${customColor})` }}
                >
-                  <div className="absolute top-4 right-4 w-4 h-4 rounded-full border-2 border-white shadow-sm ring-1 ring-black/20"></div>
+                  <div className="absolute top-6 right-6 w-5 h-5 rounded-full border-2 border-white shadow-md ring-1 ring-black/10"></div>
                </div>
-               <div className="h-4 rounded-full bg-gradient-to-r from-red-500 via-green-500 to-blue-500 relative">
-                  <div className="absolute top-1/2 -translate-y-1/2 left-1/2 w-4 h-4 bg-white rounded-full border border-gray-200 shadow-sm"></div>
+               
+               <div className="h-5 rounded-full bg-gradient-to-r from-red-500 via-green-500 to-blue-500 relative mt-2 shadow-inner">
+                  <div className="absolute top-1/2 -translate-y-1/2 left-1/2 w-6 h-6 bg-white rounded-full border-2 border-gray-200 shadow-md cursor-pointer"></div>
                </div>
-               <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200">
-                  <span className="text-[10px] font-bold text-gray-500">HEX</span>
+               
+               <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-200 mt-2">
+                  <span className="text-xs font-bold text-gray-500 bg-white px-2 py-1 rounded shadow-sm border border-gray-100">HEX</span>
                   <input 
                     type="text" 
                     value={customColor}
                     onChange={(e) => handleColorChange(e.target.value)}
-                    className="bg-transparent text-xs font-mono font-bold text-gray-900 outline-none w-full"
+                    className="bg-transparent text-sm font-mono font-bold text-gray-900 outline-none w-full"
                   />
                </div>
             </div>
 
             {/* Presets */}
-            <div className="flex-1">
-               <h4 className="text-[10px] font-bold text-gray-500 mb-3">Color Preset</h4>
-               <div className="flex flex-wrap gap-2 mb-8">
+            <div className="flex-1 flex flex-col">
+               <h4 className="text-xs font-bold text-gray-900 mb-4">Color Preset</h4>
+               <div className="flex flex-wrap gap-3 mb-10">
                   {COLOR_PRESETS.map(color => (
                     <button
                       key={color}
                       onClick={() => handleColorChange(color)}
-                      className="w-8 h-8 rounded-full border border-gray-200 hover:scale-110 transition-transform"
+                      className="w-8 h-8 rounded-full shadow-sm hover:scale-110 transition-transform ring-1 ring-black/5"
                       style={{ backgroundColor: color }}
                     />
                   ))}
                </div>
 
-               <h4 className="text-[10px] font-bold text-gray-500 mb-3">Recently Used</h4>
-               <div className="flex flex-wrap gap-2">
-                  <button className="w-8 h-8 rounded-full border border-gray-200 bg-white"></button>
-                  <button className="w-8 h-8 rounded-full border border-gray-200 bg-white"></button>
-                  <button className="w-8 h-8 rounded-full border border-gray-200 bg-white"></button>
+               <h4 className="text-xs font-bold text-gray-900 mb-4">Recently Used</h4>
+               <div className="flex flex-wrap gap-3">
+                  <button className="w-8 h-8 rounded-full border-2 border-gray-100 bg-white hover:border-gray-300 transition-colors"></button>
+                  <button className="w-8 h-8 rounded-full border-2 border-gray-100 bg-white hover:border-gray-300 transition-colors"></button>
+                  <button className="w-8 h-8 rounded-full border-2 border-gray-100 bg-white hover:border-gray-300 transition-colors"></button>
                </div>
             </div>
          </div>
@@ -302,3 +284,4 @@ export const LightingEffects: React.FC<LightingEffectsProps> = ({ lighting, devi
     </div>
   );
 };
+
