@@ -1,0 +1,5 @@
+{
+  "name": "NuPhy Console",
+  "description": "A web-based configuration tool for NuPhy keyboards, featuring key remapping, RGB lighting control, and device management.",
+  "requestFramePermissions": []
+}
