@@ -128,6 +128,28 @@ export async function getKeycode(
 }
 
 /**
+ * Sets a keycode for a specific layer, row, and column.
+ */
+export async function setKeycode(
+  device: HIDDevice,
+  layer: number,
+  row: number,
+  col: number,
+  keycode: number
+): Promise<void> {
+  const keycodeHigh = (keycode >> 8) & 0xFF;
+  const keycodeLow = keycode & 0xFF;
+  
+  await sendViaCommand(device, VIA_COMMAND_ID.DYNAMIC_KEYMAP_SET_KEYCODE, [
+    layer,
+    row,
+    col,
+    keycodeHigh,
+    keycodeLow
+  ]);
+}
+
+/**
  * Loads the full keymap for a specific layer using buffer reads.
  * This is much faster than fetching individual keycodes.
  */

@@ -16,7 +16,7 @@ import { mapEventCodeToLabel } from './utils/keycodes';
 import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, TouchSensor, DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 
 export default function App() {
-  const { deviceState, requestDevice, enableDemoMode, refreshState, loading, config, lighting } = useKeyboard();
+  const { deviceState, requestDevice, enableDemoMode, refreshState, loading, config, lighting, setKeycode } = useKeyboard();
   const [activeLayer, setActiveLayer] = useState(0);
   const [activeTab, setActiveTab] = useState<'Key Bindings' | 'Trigger Settings' | 'Advanced Functions' | 'Lighting Effects' | 'Macro Recording' | 'Mode Settings'>('Key Bindings');
   const [selectedKey, setSelectedKey] = useState<{row: number, col: number, label: string} | null>(null);
@@ -45,24 +45,24 @@ export default function App() {
     setActiveDragId(active.data.current?.keycode as string);
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveDragId(null);
 
     if (over && active.data.current?.type === 'source' && over.data.current?.type === 'target') {
-      const keycode = active.data.current.keycode;
+      const keycodeStr = active.data.current.keycode as string;
       const targetId = over.id as string; // "row,col"
       const [rowStr, colStr] = targetId.split(',');
       const row = parseInt(rowStr, 10);
       const col = parseInt(colStr, 10);
 
-      console.log(`Dropped ${keycode} onto ${row},${col}`);
+      console.log(`Dropped ${keycodeStr} onto ${row},${col}`);
       
-      // Update overrides
+      // Update overrides locally for immediate UI feedback
       const overrideKey = `${activeLayer},${row},${col}`;
       setKeymapOverrides(prev => ({
         ...prev,
-        [overrideKey]: keycode
+        [overrideKey]: keycodeStr
       }));
 
       // Highlight the changed key
@@ -73,9 +73,42 @@ export default function App() {
       });
 
       // Update selected key info
-      setSelectedKey({ row, col, label: `Key ${row},${col} -> ${keycode}` });
+      setSelectedKey({ row, col, label: `Key ${row},${col} -> ${keycodeStr}` });
       
-      // TODO: Implement actual keymap update logic via VIA protocol
+      // Send to keyboard via VIA protocol
+      // We need to convert the string keycode (e.g. "KC_PRTSC") to its numeric value
+      // For now, we'll try to parse it if it's hex, or use a mapping
+      // A full implementation would need a complete mapping of VIA keycode strings to numbers
+      let numericKeycode = 0;
+      
+      // Basic mapping for common keys to test
+      const basicKeycodeMap: Record<string, number> = {
+        'PRTSC': 0x0046,
+        'DEL': 0x004C,
+        'INS': 0x0049,
+        'HOME': 0x004A,
+        'END': 0x004D,
+        'PGUP': 0x004B,
+        'PGDN': 0x004E,
+      };
+
+      if (keycodeStr.startsWith('0x')) {
+        numericKeycode = parseInt(keycodeStr, 16);
+      } else if (basicKeycodeMap[keycodeStr]) {
+        numericKeycode = basicKeycodeMap[keycodeStr];
+      } else {
+        console.warn(`Could not resolve numeric keycode for ${keycodeStr}`);
+        // Fallback: try to find it in the QMK basic keycodes or just use 0
+      }
+
+      if (numericKeycode > 0 && deviceState.isConnected) {
+        try {
+          await setKeycode(activeLayer, row, col, numericKeycode);
+          console.log(`Successfully set keycode ${numericKeycode} at layer ${activeLayer}, row ${row}, col ${col}`);
+        } catch (e) {
+          console.error("Failed to set keycode", e);
+        }
+      }
     }
   };
 

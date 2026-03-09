@@ -6,6 +6,7 @@ import {
   getLayerCount,
   getKeycode,
   loadKeymapLayer,
+  setKeycode as setViaKeycode,
   getBacklightBrightness,
   getBacklightEffect,
   setBacklightBrightness,
@@ -217,6 +218,17 @@ export function useKeyboard() {
     }
   };
 
+  const setKeycode = async (layer: number, row: number, col: number, keycode: number) => {
+    if (deviceState.device) {
+      try {
+        await setViaKeycode(deviceState.device, layer, row, col, keycode);
+        // Optionally update local state here if needed
+      } catch (e) {
+        console.error(`Failed to set keycode at layer ${layer}, row ${row}, col ${col}:`, e);
+      }
+    }
+  };
+
   return {
     deviceState,
     requestDevice,
@@ -225,6 +237,7 @@ export function useKeyboard() {
     loading,
     error,
     config: nuphyConfig,
+    setKeycode,
     lighting: {
       setBrightness,
       setEffect,
