@@ -156,16 +156,16 @@ export const KeyboardVisualizer: React.FC<KeyboardVisualizerProps> = ({
   };
 
   return (
-    <div className="relative inline-block p-6 bg-white rounded-[24px] shadow-sm border border-gray-200">
+    <div className="relative w-full max-w-full p-3 sm:p-4 md:p-6 bg-white rounded-[24px] shadow-sm border border-gray-200">
        {/* Main Case Frame - Cleaner Look */}
-       <div className="p-2 bg-[#F5F5F5] rounded-[16px] border border-gray-100 shadow-inner">
-          <div className="min-w-fit">
-            {renderLayout()}
+       <div className="p-2 bg-[#F5F5F5] rounded-[16px] border border-gray-100 shadow-inner overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="w-fit mx-auto [--key-gap:4px] [--key-unit:34px] sm:[--key-unit:42px] xl:[--key-unit:54px]">
+             {renderLayout()}
           </div>
        </div>
        
        {/* Status Light Area - Simplified */}
-       <div className="absolute top-6 right-12 w-16 h-1 bg-gray-200 rounded-full"></div>
+       <div className="absolute top-4 sm:top-6 right-6 sm:right-12 w-12 sm:w-16 h-1 bg-gray-200 rounded-full"></div>
     </div>
   );
 };

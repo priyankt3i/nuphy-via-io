@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'motion/react';
 import { cn } from './lib/utils';
-import { Keyboard, Zap, Settings, FileText, Battery, RefreshCw, Monitor, Moon, Sun, Globe, X, PlayCircle, RotateCcw, Laptop, Beaker, Save, Target } from 'lucide-react';
+import { Keyboard, Zap, Settings, FileText, Battery, RefreshCw, Monitor, Moon, Sun, Globe, X, PlayCircle, RotateCcw, Laptop, Beaker, Save, Target, Menu } from 'lucide-react';
 import { useKeyboard } from './hooks/useKeyboard';
 import { KeyboardVisualizer } from './components/KeyboardVisualizer';
 import { KeycodePicker } from './components/KeycodePicker';
@@ -24,7 +24,10 @@ export default function App() {
   const [osMode, setOsMode] = useState<'Mac' | 'Win'>('Mac');
   const [pressedKeys, setPressedKeys] = useState<Set<string>>(new Set());
   const [testHistory, setTestHistory] = useState<string[]>([]);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    return window.innerWidth >= 1024;
+  });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [keymapOverrides, setKeymapOverrides] = useState<Record<string, string>>({});
@@ -167,11 +170,11 @@ export default function App() {
   // Landing Page
   if (!deviceState.isConnected) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white relative overflow-hidden">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white relative overflow-hidden px-4 sm:px-6">
         {/* Top Bar */}
-        <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center">
+        <div className="absolute top-0 left-0 right-0 p-4 sm:p-6 flex flex-wrap justify-between items-center gap-3">
           <h1 className="text-xl font-bold italic tracking-tighter">NuPhyIO</h1>
-          <div className="flex items-center gap-4 text-sm font-medium text-gray-600">
+          <div className="flex items-center gap-3 sm:gap-4 text-sm font-medium text-gray-600">
              <button className="flex items-center gap-1 hover:text-black"><Globe className="w-4 h-4" /> English</button>
              <button className="flex items-center gap-1 hover:text-black"><Sun className="w-4 h-4" /> Theme</button>
           </div>
@@ -180,7 +183,7 @@ export default function App() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center space-y-12 max-w-4xl w-full"
+          className="flex flex-col items-center space-y-8 sm:space-y-12 max-w-4xl w-full pt-16 sm:pt-12"
         >
           {/* USB Cable Animation */}
           <div className="relative h-32 w-full flex justify-center items-end">
@@ -198,11 +201,11 @@ export default function App() {
           </div>
 
           {/* Keyboard Placeholder / Wireframe */}
-          <div className="w-[800px] h-[300px] border-2 border-gray-100 rounded-[24px] flex items-center justify-center bg-gray-50/50">
-             <div className="grid grid-cols-15 gap-2 opacity-10">
+          <div className="w-full max-w-[800px] h-[180px] sm:h-[240px] md:h-[300px] border-2 border-gray-100 rounded-[24px] flex items-center justify-center bg-gray-50/50 overflow-hidden">
+             <div className="grid grid-cols-10 sm:grid-cols-12 md:grid-cols-15 gap-1.5 sm:gap-2 opacity-10 px-2">
                 {/* Abstract grid to simulate keyboard */}
                 {Array.from({ length: 60 }).map((_, i) => (
-                  <div key={i} className="w-10 h-10 border border-gray-400 rounded-md"></div>
+                  <div key={i} className="w-5 h-5 sm:w-7 sm:h-7 md:w-10 md:h-10 border border-gray-400 rounded-md"></div>
                 ))}
              </div>
           </div>
@@ -235,40 +238,61 @@ export default function App() {
   // Main Interface
   return (
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-    <div className="flex h-screen bg-[#F2F2F2] text-[#333333] overflow-hidden">
-      <Sidebar 
-        isOpen={isSidebarOpen} 
-        onToggle={() => setIsSidebarOpen(!isSidebarOpen)} 
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        deviceName={deviceState.name}
-      />
+    <div className="flex h-dvh bg-[#F2F2F2] text-[#333333] overflow-hidden">
+      {isSidebarOpen && (
+        <button
+          className="fixed inset-0 bg-black/20 z-30 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+          aria-label="Close sidebar overlay"
+        />
+      )}
+      <div
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 transition-transform duration-200 lg:static lg:inset-auto lg:z-30 lg:translate-x-0",
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <Sidebar 
+          isOpen={isSidebarOpen} 
+          onToggle={() => setIsSidebarOpen(!isSidebarOpen)} 
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          deviceName={deviceState.name}
+        />
+      </div>
 
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 
-      <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+      <div className="flex-1 min-w-0 flex flex-col h-full overflow-hidden relative">
         {/* Header / Upper Sidebar */}
-        <header className="h-16 flex items-center justify-between px-8 bg-transparent z-20 flex-shrink-0">
-          <div className="flex items-center gap-6">
+        <header className="min-h-16 py-3 px-3 sm:px-5 lg:px-8 bg-transparent z-20 flex-shrink-0 flex flex-wrap items-center justify-between gap-3 border-b border-gray-200/70 lg:border-none">
+          <div className="flex items-center gap-3 sm:gap-6 min-w-0">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="lg:hidden p-2 bg-white rounded-full shadow-sm border border-gray-200 hover:bg-gray-50 transition-all"
+              aria-label="Open sidebar"
+            >
+              <Menu className="w-4 h-4" />
+            </button>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-500"></div>
               <span className="text-sm font-bold text-gray-700">Office Mode</span>
-              <span className="text-[10px] text-green-600 bg-green-100 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+              <span className="hidden sm:flex text-[10px] text-green-600 bg-green-100 px-2 py-0.5 rounded-full font-bold items-center gap-1">
                 <Save className="w-3 h-3" /> Saved
               </span>
             </div>
             
-            <div className="h-4 w-px bg-gray-300"></div>
+            <div className="hidden md:block h-4 w-px bg-gray-300"></div>
 
-            <button className="flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-black transition-colors">
+            <button className="hidden md:flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-black transition-colors">
               <Target className="w-3 h-3" /> Recalibrate
             </button>
             
-            <button className="flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-black transition-colors">
+            <button className="hidden md:flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-black transition-colors">
               <Beaker className="w-3 h-3" /> Feature Lab
             </button>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 flex-wrap justify-end">
              {/* Refresh Button */}
              <button 
                onClick={refreshState}
@@ -285,7 +309,7 @@ export default function App() {
              {/* OS Toggle */}
              <button 
                onClick={toggleOsMode}
-               className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
+               className="flex items-center gap-2 bg-white px-2.5 sm:px-3 py-1.5 rounded-full shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
              >
                <span className={cn(
                  "w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center transition-colors",
@@ -299,23 +323,23 @@ export default function App() {
              <button 
                onClick={() => setShowKeyTest(!showKeyTest)}
                className={cn(
-                 "flex items-center gap-2 px-4 py-1.5 rounded-full shadow-sm border transition-all text-xs font-bold",
+                 "flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full shadow-sm border transition-all text-xs font-bold",
                  showKeyTest 
                    ? "bg-black text-white border-black" 
                    : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
                )}
              >
                <Keyboard className="w-4 h-4" />
-               Key Test
+               <span className="hidden sm:inline">Key Test</span>
              </button>
           </div>
         </header>
 
         {/* Main Content Area */}
-        <main className="flex-1 flex flex-col items-center justify-start pt-2 pb-8 px-8 gap-6 overflow-hidden z-10">
+        <main className="flex-1 flex flex-col items-center justify-start pt-2 pb-6 px-3 sm:px-6 lg:px-8 gap-4 lg:gap-6 overflow-y-auto overflow-x-hidden z-10">
           
           {/* Keyboard Visualizer Area */}
-          <div className="relative flex-shrink-0 z-10">
+          <div className="w-full max-w-[1400px] flex flex-col items-center flex-shrink-0 z-10">
             <KeyboardVisualizer 
               config={config} 
               onKeyClick={handleKeyClick} 
@@ -327,8 +351,8 @@ export default function App() {
               osMode={osMode}
             />
             
-            {/* Floating Layer Controls */}
-            <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 bg-white rounded-full shadow-sm border border-gray-200 p-1 flex items-center gap-1">
+            {/* Layer Controls */}
+            <div className="mt-3 bg-white rounded-full shadow-sm border border-gray-200 p-1 flex items-center justify-center gap-1 flex-wrap max-w-full">
                <button className="px-3 py-1.5 rounded-full text-xs font-bold text-gray-500 hover:bg-gray-100 flex items-center gap-1">
                  <RotateCcw className="w-3 h-3" /> Reset
                </button>
@@ -338,7 +362,7 @@ export default function App() {
                    key={layer}
                    onClick={() => setActiveLayer(layer)}
                    className={cn(
-                     "px-4 py-1.5 rounded-full text-xs font-bold transition-all",
+                     "px-3 sm:px-4 py-1.5 rounded-full text-xs font-bold transition-all",
                      activeLayer === layer
                        ? "bg-[#333] text-white"
                        : "text-gray-500 hover:bg-gray-100"
@@ -351,40 +375,42 @@ export default function App() {
           </div>
 
           {/* Bottom Configuration Panel */}
-          <div className="w-full max-w-[1400px] flex-1 bg-white rounded-[24px] shadow-xl border border-gray-200 overflow-hidden flex flex-col mt-8">
+          <div className="w-full max-w-[1400px] flex-1 min-h-0 bg-white rounded-[24px] shadow-xl border border-gray-200 overflow-hidden flex flex-col mt-2 lg:mt-4">
              {/* Tabs */}
-             <div className="flex items-center px-8 pt-6 gap-8 border-b border-gray-100 bg-[#FAFAFA]">
-                {['Trigger Settings', 'Key Bindings', 'Advanced Functions', 'Lighting Effects', 'Macro Recording', 'Switch Selection', 'Mode Settings'].map(tab => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab as any)}
-                    className={cn(
-                      "pb-4 text-sm font-bold transition-all relative",
-                      activeTab === tab
-                        ? "text-black"
-                        : "text-gray-400 hover:text-gray-600"
-                    )}
-                  >
-                    {tab}
-                    {activeTab === tab && (
-                      <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-[3px] bg-black rounded-t-full" />
-                    )}
-                  </button>
-                ))}
+             <div className="border-b border-gray-100 bg-[#FAFAFA]">
+                <div className="flex items-center gap-5 sm:gap-8 px-4 sm:px-8 pt-4 sm:pt-6 overflow-x-auto whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {['Trigger Settings', 'Key Bindings', 'Advanced Functions', 'Lighting Effects', 'Macro Recording', 'Switch Selection', 'Mode Settings'].map(tab => (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveTab(tab as any)}
+                      className={cn(
+                        "pb-3 sm:pb-4 text-xs sm:text-sm font-bold transition-all relative flex-shrink-0",
+                        activeTab === tab
+                          ? "text-black"
+                          : "text-gray-400 hover:text-gray-600"
+                      )}
+                    >
+                      {tab}
+                      {activeTab === tab && (
+                        <motion.div layoutId="activeTab" className="absolute bottom-0 left-0 right-0 h-[3px] bg-black rounded-t-full" />
+                      )}
+                    </button>
+                  ))}
+                </div>
              </div>
 
              {/* Content */}
-             <div className="flex-1 p-0 bg-white overflow-hidden">
+             <div className="flex-1 p-0 bg-white overflow-auto">
                 {activeTab === 'Key Bindings' && (
-                  <div className="flex h-full">
-                    <div className="flex-1 border-r border-gray-100">
+                  <div className="flex h-full flex-col xl:flex-row">
+                    <div className="flex-1 min-h-[320px] xl:min-h-0 xl:border-r border-gray-100">
                       <KeycodePicker onSelect={handleKeycodeSelect} />
                     </div>
                     
                     {/* Commonly Used Section (Right Side) */}
-                    <div className="w-[400px] p-6 bg-[#FAFAFA] overflow-y-auto">
+                    <div className="w-full xl:w-[360px] 2xl:w-[400px] p-4 sm:p-6 bg-[#FAFAFA] overflow-y-auto border-t xl:border-t-0 border-gray-100">
                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Commonly Used</h3>
-                       <div className="grid grid-cols-4 gap-2">
+                       <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                           {['INS', 'SCR', 'PAUSE', 'MENU', 'CALC', 'MAIL', 'HOME', 'END', 'PGUP', 'PGDN', 'PRTSC', 'DEL'].map(key => (
                             <button key={key} className="h-10 rounded-lg bg-white border border-gray-200 text-[10px] font-bold text-gray-600 hover:border-gray-400 hover:shadow-sm transition-all">
                               {key}
@@ -400,7 +426,7 @@ export default function App() {
                                   <div className="w-12 h-12 bg-white border border-gray-300 rounded-lg flex items-center justify-center shadow-sm">
                                     <span className="text-lg font-bold">{selectedKey.label.split(' ')[1] || '?'}</span>
                                   </div>
-                                  <div>
+                                  <div className="min-w-0">
                                     <p className="font-bold text-sm">{selectedKey.label}</p>
                                     <p className="text-xs text-gray-400">Row {selectedKey.row}, Col {selectedKey.col}</p>
                                   </div>
@@ -444,7 +470,7 @@ export default function App() {
           initial={{ x: '100%' }}
           animate={{ x: showKeyTest ? 0 : '100%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          className="fixed top-4 right-4 bottom-4 w-80 bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 flex flex-col overflow-hidden"
+          className="fixed top-2 right-2 bottom-2 sm:top-4 sm:right-4 sm:bottom-4 w-[min(20rem,calc(100vw-1rem))] bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 flex flex-col overflow-hidden"
         >
           <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-[#FAFAFA]">
             <div className="flex items-center gap-2">

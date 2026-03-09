@@ -13,7 +13,7 @@ export const ModeSettings = () => {
   const [pollingRate, setPollingRate] = useState(1000);
 
   return (
-    <div className="flex h-full w-full bg-gray-50 p-8 overflow-y-auto">
+    <div className="flex h-full w-full bg-gray-50 p-4 sm:p-8 overflow-y-auto">
        <div className="max-w-3xl mx-auto w-full space-y-8">
           
           {/* Gaming Optimizations */}
@@ -28,7 +28,7 @@ export const ModeSettings = () => {
                 </div>
              </div>
 
-             <div className="grid grid-cols-3 gap-4">
+             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <LockToggle label="Lock Windows Key" checked={winLock} onChange={setWinLock} />
                 <LockToggle label="Lock Alt + F4" checked={altF4Lock} onChange={setAltF4Lock} />
                 <LockToggle label="Lock Alt + Tab" checked={altTabLock} onChange={setAltTabLock} />
@@ -109,7 +109,7 @@ export const ModeSettings = () => {
                    </label>
                    <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded">{pollingRate}Hz</span>
                 </div>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                    {[125, 250, 500, 1000].map(rate => (
                      <button
                        key={rate}

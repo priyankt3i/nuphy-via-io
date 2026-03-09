@@ -76,15 +76,15 @@ export const KeycodePicker: React.FC<KeycodePickerProps> = ({ onSelect }) => {
   const [activeCategory, setActiveCategory] = useState<keyof typeof KEYCODE_CATEGORIES>('Basic');
 
   return (
-    <div className="flex h-full bg-white rounded-xl overflow-hidden">
+    <div className="flex h-full bg-white rounded-xl overflow-hidden flex-col lg:flex-row">
       {/* Sidebar */}
-      <div className="w-48 flex flex-col gap-2 p-4 border-r border-gray-100">
+      <div className="w-full lg:w-48 flex lg:flex-col gap-2 p-3 sm:p-4 border-b lg:border-b-0 lg:border-r border-gray-100 overflow-x-auto lg:overflow-visible [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {Object.entries(KEYCODE_CATEGORIES).map(([category, data]) => (
           <button
             key={category}
             onClick={() => setActiveCategory(category as keyof typeof KEYCODE_CATEGORIES)}
             className={cn(
-              "flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-lg transition-all",
+              "flex shrink-0 items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold rounded-lg transition-all",
               activeCategory === category
                 ? "bg-[#333] text-white shadow-md"
                 : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
@@ -97,7 +97,7 @@ export const KeycodePicker: React.FC<KeycodePickerProps> = ({ onSelect }) => {
       </div>
       
       {/* Content */}
-      <div className="flex-1 p-6 overflow-y-auto bg-white">
+      <div className="flex-1 p-4 sm:p-6 overflow-y-auto bg-white">
         <div className="mb-4">
            <h3 className="text-lg font-bold text-gray-900">{activeCategory}</h3>
         </div>

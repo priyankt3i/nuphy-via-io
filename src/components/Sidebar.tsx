@@ -38,7 +38,7 @@ export const Sidebar = ({ isOpen, onToggle, onOpenSettings, deviceName }: Sideba
       initial={isOpen ? "open" : "closed"}
       animate={isOpen ? "open" : "closed"}
       variants={sidebarVariants}
-      className="h-screen bg-white border-r border-gray-200 flex flex-col relative z-30 shadow-xl"
+      className="h-full max-w-[85vw] bg-white border-r border-gray-200 flex flex-col relative z-30 shadow-xl"
     >
       {/* Logo Area */}
       <div className="h-20 flex items-center px-6 border-b border-gray-100">

@@ -16,15 +16,15 @@ export const TriggerSettings = () => {
   const [mockPressDepth, setMockPressDepth] = useState(0);
 
   return (
-    <div className="flex h-full w-full bg-gray-50">
+    <div className="flex h-full w-full bg-gray-50 flex-col xl:flex-row">
       {/* Left Panel: Visualization */}
-      <div className="w-[360px] border-r border-gray-200 bg-white p-6 flex flex-col gap-6">
+      <div className="w-full xl:w-[360px] border-b xl:border-b-0 xl:border-r border-gray-200 bg-white p-4 sm:p-6 flex flex-col gap-6">
         <div>
           <h3 className="text-sm font-bold text-gray-900 mb-1">Key Press Visualization</h3>
           <p className="text-xs text-gray-500">Real-time press depth reference</p>
         </div>
 
-        <div className="flex-1 flex items-center justify-center relative">
+        <div className="min-h-[280px] flex-1 flex items-center justify-center relative">
            {/* Key Visualization */}
            <div className="w-32 h-64 bg-gray-100 rounded-lg relative overflow-hidden border border-gray-200">
               {/* Travel Track */}
@@ -82,7 +82,7 @@ export const TriggerSettings = () => {
       </div>
 
       {/* Right Panel: Settings */}
-      <div className="flex-1 p-8 overflow-y-auto">
+      <div className="flex-1 p-4 sm:p-8 overflow-y-auto">
          <div className="max-w-2xl space-y-8">
             
             {/* Actuation Point */}
@@ -127,7 +127,7 @@ export const TriggerSettings = () => {
                  <motion.div 
                    initial={{ opacity: 0, height: 0 }}
                    animate={{ opacity: 1, height: 'auto' }}
-                   className="grid grid-cols-2 gap-8 p-6 bg-white rounded-xl border border-gray-200 shadow-sm"
+                   className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 p-4 sm:p-6 bg-white rounded-xl border border-gray-200 shadow-sm"
                  >
                     <div className="space-y-3">
                        <div className="flex justify-between text-xs font-bold">
@@ -161,7 +161,7 @@ export const TriggerSettings = () => {
                        />
                     </div>
 
-                    <div className="col-span-2 pt-4 border-t border-gray-100 flex justify-between items-center">
+                    <div className="md:col-span-2 pt-4 border-t border-gray-100 flex justify-between items-center gap-3">
                        <div>
                          <h4 className="text-xs font-bold text-gray-900">Continuous Rapid Trigger</h4>
                          <p className="text-[10px] text-gray-500">RT terminates only when button is fully released</p>
@@ -181,7 +181,7 @@ export const TriggerSettings = () => {
                  <p className="text-xs text-gray-500">Limit active range to prevent accidental triggers</p>
                </div>
                
-               <div className="grid grid-cols-2 gap-8">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                   <div className="space-y-3">
                      <div className="flex justify-between text-xs font-bold">
                         <span>Top Dead Zone</span>

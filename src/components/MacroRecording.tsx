@@ -3,9 +3,9 @@ import { PlayCircle, Plus, Trash2, Save, Clock, Repeat } from 'lucide-react';
 
 export const MacroRecording = () => {
   return (
-    <div className="flex h-full w-full bg-gray-50">
+    <div className="flex h-full w-full bg-gray-50 flex-col xl:flex-row">
       {/* Left Panel: Macro List */}
-      <div className="w-64 border-r border-gray-200 bg-white p-4 flex flex-col">
+      <div className="w-full xl:w-64 border-b xl:border-b-0 xl:border-r border-gray-200 bg-white p-4 flex flex-col max-h-[280px] xl:max-h-none">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider">Macros (0/32)</h3>
           <button className="p-1 hover:bg-gray-100 rounded text-gray-500">
@@ -29,7 +29,7 @@ export const MacroRecording = () => {
       </div>
 
       {/* Main Panel: Editor */}
-      <div className="flex-1 p-8 flex flex-col items-center justify-center text-center space-y-6">
+      <div className="flex-1 p-6 sm:p-8 flex flex-col items-center justify-center text-center space-y-6 min-h-[280px]">
         <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-200">
           <PlayCircle className="w-8 h-8 text-gray-300" />
         </div>
@@ -43,7 +43,7 @@ export const MacroRecording = () => {
       </div>
       
       {/* Right Panel: Settings */}
-      <div className="w-72 border-l border-gray-200 bg-white p-6 space-y-8">
+      <div className="w-full xl:w-72 border-t xl:border-t-0 xl:border-l border-gray-200 bg-white p-4 sm:p-6 space-y-8">
          <div className="space-y-4">
             <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
               <Clock className="w-3 h-3" /> Recording Settings

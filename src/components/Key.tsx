@@ -23,13 +23,9 @@ export const Key: React.FC<KeyProps> = ({
   onClick,
   variant = 'default'
 }) => {
-  // Base unit size in pixels
-  const u = 54;
-  const gap = 4;
-
   const style = {
-    width: `${width * u + (width - 1) * gap}px`,
-    height: `${height * u + (height - 1) * gap}px`,
+    width: `calc(${width} * var(--key-unit, 54px) + ${Math.max(width - 1, 0)} * var(--key-gap, 4px))`,
+    height: `calc(${height} * var(--key-unit, 54px) + ${Math.max(height - 1, 0)} * var(--key-gap, 4px))`,
   };
 
   // The screenshot shows keys are mostly white with a colored border (likely RGB effect).
@@ -48,7 +44,7 @@ export const Key: React.FC<KeyProps> = ({
         "bg-white border border-gray-300 shadow-[0_2px_0_rgba(0,0,0,0.05)]", // Base white key style
         
         // Text Style
-        "text-gray-700 font-bold text-[10px] tracking-wider",
+        "text-gray-700 font-bold text-[9px] sm:text-[10px] tracking-wider",
 
         // Active/Selected State
         isActive && "ring-2 ring-blue-400 z-10",

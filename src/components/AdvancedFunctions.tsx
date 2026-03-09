@@ -3,8 +3,8 @@ import { Zap, Layers, Command, ArrowRightLeft, MousePointer2 } from 'lucide-reac
 
 export const AdvancedFunctions = () => {
   return (
-    <div className="flex h-full w-full bg-gray-50 p-8 overflow-y-auto items-center justify-center">
-      <div className="grid grid-cols-3 gap-6 max-w-5xl w-full">
+    <div className="flex h-full w-full bg-gray-50 p-4 sm:p-8 overflow-y-auto items-center justify-center">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 max-w-5xl w-full">
         <FeatureCard 
           icon={<Zap className="w-6 h-6 text-yellow-500" />}
           title="Dynamic Keystroke (DKS)"

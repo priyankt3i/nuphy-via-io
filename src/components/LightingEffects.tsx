@@ -176,7 +176,7 @@ export const LightingEffects: React.FC<LightingEffectsProps> = ({ lighting, devi
   };
 
   return (
-    <div className="flex h-full w-full bg-[#f5f5f5] p-6 gap-4 overflow-hidden">
+    <div className="flex h-full w-full bg-[#f5f5f5] p-4 sm:p-6 gap-4 overflow-y-auto flex-col 2xl:flex-row">
       <style>{`
         .hue-slider {
           -webkit-appearance: none;
@@ -207,7 +207,7 @@ export const LightingEffects: React.FC<LightingEffectsProps> = ({ lighting, devi
       `}</style>
       
       {/* Area 1: Toggles */}
-      <div className="w-[260px] flex flex-col gap-4">
+      <div className="w-full 2xl:w-[260px] flex flex-col gap-4">
          {/* Back Light Settings Card */}
          <div className="bg-[#2A2A2A] rounded-2xl p-4 text-white flex flex-col gap-4 relative overflow-hidden shadow-lg">
             {/* Graphic */}
@@ -256,9 +256,9 @@ export const LightingEffects: React.FC<LightingEffectsProps> = ({ lighting, devi
       </div>
 
       {/* Area 2: Effects Grid */}
-      <div className="w-[340px] bg-white rounded-2xl p-6 border border-gray-200 flex flex-col shadow-sm">
+      <div className="w-full 2xl:w-[340px] bg-white rounded-2xl p-4 sm:p-6 border border-gray-200 flex flex-col shadow-sm min-h-[320px]">
          <h3 className="text-sm font-bold text-gray-900 mb-4">Lighting Settings</h3>
-         <div className="grid grid-cols-4 gap-3 overflow-y-auto pr-2 pb-4 custom-scrollbar">
+         <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-3 overflow-y-auto pr-1 sm:pr-2 pb-4 custom-scrollbar">
             {LIGHTING_EFFECTS.map((effect) => (
               <button
                 key={effect.id}
@@ -278,7 +278,7 @@ export const LightingEffects: React.FC<LightingEffectsProps> = ({ lighting, devi
       </div>
 
       {/* Area 3: Sliders */}
-      <div className="w-[280px] bg-white rounded-2xl p-6 border border-gray-200 flex flex-col gap-10 shadow-sm">
+      <div className="w-full 2xl:w-[280px] bg-white rounded-2xl p-4 sm:p-6 border border-gray-200 flex flex-col gap-8 sm:gap-10 shadow-sm">
          <div className="space-y-6">
             <div className="flex justify-between items-center">
                <label className="text-sm font-bold text-gray-900">Brightness</label>
@@ -321,7 +321,7 @@ export const LightingEffects: React.FC<LightingEffectsProps> = ({ lighting, devi
       </div>
 
       {/* Area 4: Color Picker */}
-      <div className="flex-1 bg-white rounded-2xl p-6 border border-gray-200 flex flex-col shadow-sm min-w-[300px]">
+      <div className="w-full 2xl:flex-1 bg-white rounded-2xl p-4 sm:p-6 border border-gray-200 flex flex-col shadow-sm min-w-0 2xl:min-w-[300px]">
          <div className="flex justify-between items-center mb-6">
             <h3 className="text-sm font-bold text-gray-900">Custom Color</h3>
             <div 
@@ -332,9 +332,9 @@ export const LightingEffects: React.FC<LightingEffectsProps> = ({ lighting, devi
             </div>
          </div>
 
-         <div className={cn("flex flex-col xl:flex-row gap-8 h-full transition-opacity", customColorEnabled ? "opacity-100" : "opacity-50 pointer-events-none")}>
+         <div className={cn("flex flex-col xl:flex-row gap-6 sm:gap-8 h-full transition-opacity", customColorEnabled ? "opacity-100" : "opacity-50 pointer-events-none")}>
             {/* Color Picker Area */}
-            <div className="flex-1 flex flex-col gap-4 max-w-[300px]">
+            <div className="flex-1 flex flex-col gap-4 max-w-full xl:max-w-[300px]">
                <div 
                  className="w-full aspect-square rounded-2xl shadow-inner relative border border-gray-100"
                  style={{ background: `linear-gradient(to bottom, transparent, black), linear-gradient(to right, white, ${customColor})` }}
