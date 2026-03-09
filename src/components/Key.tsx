@@ -44,7 +44,7 @@ export const Key: React.FC<KeyProps> = ({
         "bg-white border border-gray-300 shadow-[0_2px_0_rgba(0,0,0,0.05)]", // Base white key style
         
         // Text Style
-        "text-gray-700 font-bold text-[9px] sm:text-[10px] tracking-wider",
+        "text-gray-700 font-bold text-[10px] tracking-wider",
 
         // Active/Selected State
         isActive && "ring-2 ring-blue-400 z-10",

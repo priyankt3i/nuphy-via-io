@@ -83,6 +83,22 @@ export const KeyboardVisualizer: React.FC<KeyboardVisualizerProps> = ({
           const [rStr, cStr] = item.split(',');
           const r = parseInt(rStr, 10);
           const c = parseInt(cStr, 10);
+          const matrixMap: Record<string, string> = {
+             // Row 0
+             "0,0": "ESC", "0,1": "F1", "0,2": "F2", "0,3": "F3", "0,4": "F4", "0,5": "F5", "0,6": "F6", "0,7": "F7", "0,8": "F8", "0,9": "F9", "0,10": "F10", "0,11": "F11", "0,12": "F12",
+             "2,14": "PRTSC", "0,15": "INS", "0,14": "DEL",
+             // Row 1
+             "1,0": "`", "1,1": "1", "1,2": "2", "1,3": "3", "1,4": "4", "1,5": "5", "1,6": "6", "1,7": "7", "1,8": "8", "1,9": "9", "1,10": "0", "1,11": "-", "1,12": "=", "1,13": "BACK", "1,16": "HOME",
+             // Row 2
+             "2,0": "TAB", "2,1": "Q", "2,2": "W", "2,3": "E", "2,4": "R", "2,5": "T", "2,6": "Y", "2,7": "U", "2,8": "I", "2,9": "O", "2,10": "P", "2,11": "[", "2,12": "]", "2,13": "\\", "2,16": "PGUP",
+             // Row 3
+             "3,0": "CAPS", "3,1": "A", "3,2": "S", "3,3": "D", "3,4": "F", "3,5": "G", "3,6": "H", "3,7": "J", "3,8": "K", "3,9": "L", "3,10": ";", "3,11": "'", "3,13": "ENTER", "1,15": "PGDN",
+             // Row 4
+             "4,0": "SHIFT", "4,2": "Z", "4,3": "X", "4,4": "C", "4,5": "V", "4,6": "B", "4,7": "N", "4,8": "M", "4,9": ",", "4,10": ".", "4,11": "/", "4,13": "SHIFT", "4,14": "UP", "2,15": "END",
+             // Row 5
+             "5,0": "CTRL", "5,1": "OPT", "5,2": "CMD", "5,6": "SPACE", "5,9": "CMD", "5,10": "FN", "3,14": "CTRL", "5,13": "LEFT", "5,14": "DOWN", "5,15": "RIGHT"
+          };
+          const fallbackLabel = matrixMap[item] || label;
 
           // 1. Get Label from Device State or Fallback Map
           const overrideKey = `${activeLayer},${r},${c}`;
@@ -90,26 +106,10 @@ export const KeyboardVisualizer: React.FC<KeyboardVisualizerProps> = ({
             label = keymapOverrides[overrideKey];
           } else if (deviceState?.keymap && deviceState.keymap[activeLayer] && deviceState.keymap[activeLayer][r] && deviceState.keymap[activeLayer][r][c] !== undefined) {
              const keycode = deviceState.keymap[activeLayer][r][c];
-             label = getKeyLabel(keycode);
+             const resolved = getKeyLabel(keycode, config.customKeycodes);
+             label = resolved.startsWith('0x') ? fallbackLabel : resolved;
           } else {
-              // Fallback Mapping
-              const matrixMap: Record<string, string> = {
-                 // Row 0
-                 "0,0": "ESC", "0,1": "F1", "0,2": "F2", "0,3": "F3", "0,4": "F4", "0,5": "F5", "0,6": "F6", "0,7": "F7", "0,8": "F8", "0,9": "F9", "0,10": "F10", "0,11": "F11", "0,12": "F12", 
-                 "2,14": "PRTSC", "0,15": "INS", "0,14": "DEL",
-                 // Row 1
-                 "1,0": "`", "1,1": "1", "1,2": "2", "1,3": "3", "1,4": "4", "1,5": "5", "1,6": "6", "1,7": "7", "1,8": "8", "1,9": "9", "1,10": "0", "1,11": "-", "1,12": "=", "1,13": "BACK", "1,16": "HOME",
-                 // Row 2
-                 "2,0": "TAB", "2,1": "Q", "2,2": "W", "2,3": "E", "2,4": "R", "2,5": "T", "2,6": "Y", "2,7": "U", "2,8": "I", "2,9": "O", "2,10": "P", "2,11": "[", "2,12": "]", "2,13": "\\", "2,16": "PGUP",
-                 // Row 3
-                 "3,0": "CAPS", "3,1": "A", "3,2": "S", "3,3": "D", "3,4": "F", "3,5": "G", "3,6": "H", "3,7": "J", "3,8": "K", "3,9": "L", "3,10": ";", "3,11": "'", "3,13": "ENTER", "1,15": "PGDN",
-                 // Row 4
-                 "4,0": "SHIFT", "4,2": "Z", "4,3": "X", "4,4": "C", "4,5": "V", "4,6": "B", "4,7": "N", "4,8": "M", "4,9": ",", "4,10": ".", "4,11": "/", "4,13": "SHIFT", "4,14": "UP", "2,15": "END",
-                 // Row 5
-                 "5,0": "CTRL", "5,1": "OPT", "5,2": "CMD", "5,6": "SPACE", "5,9": "CMD", "5,10": "FN", "3,14": "CTRL", "5,13": "LEFT", "5,14": "DOWN", "5,15": "RIGHT"
-              };
-              
-              if (matrixMap[item]) label = matrixMap[item];
+              label = fallbackLabel;
           }
 
           // Apply OS Mode Overrides
@@ -130,7 +130,7 @@ export const KeyboardVisualizer: React.FC<KeyboardVisualizerProps> = ({
             <DroppableKey 
               key={keyId} 
               id={`${r},${c}`} 
-              onClick={() => onKeyClick?.(rowIndex, i)}
+              onClick={() => onKeyClick?.(r, c)}
               isHighlighted={isHighlighted}
             >
               <Key
@@ -156,16 +156,16 @@ export const KeyboardVisualizer: React.FC<KeyboardVisualizerProps> = ({
   };
 
   return (
-    <div className="relative w-full max-w-full p-3 sm:p-4 md:p-6 bg-white rounded-[24px] shadow-sm border border-gray-200">
+    <div className="relative inline-block max-w-full p-4 sm:p-6 bg-white rounded-[24px] shadow-sm border border-gray-200">
        {/* Main Case Frame - Cleaner Look */}
        <div className="p-2 bg-[#F5F5F5] rounded-[16px] border border-gray-100 shadow-inner overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="w-fit mx-auto [--key-gap:4px] [--key-unit:34px] sm:[--key-unit:42px] xl:[--key-unit:54px]">
+          <div className="w-fit mx-auto [--key-gap:4px] [--key-unit:30px] sm:[--key-unit:38px] md:[--key-unit:46px] lg:[--key-unit:54px]">
              {renderLayout()}
           </div>
        </div>
        
        {/* Status Light Area - Simplified */}
-       <div className="absolute top-4 sm:top-6 right-6 sm:right-12 w-12 sm:w-16 h-1 bg-gray-200 rounded-full"></div>
+       <div className="hidden sm:block absolute top-6 right-12 w-16 h-1 bg-gray-200 rounded-full"></div>
     </div>
   );
 };

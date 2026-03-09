@@ -16,7 +16,7 @@ import { mapEventCodeToLabel } from './utils/keycodes';
 import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, TouchSensor, DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 
 export default function App() {
-  const { deviceState, requestDevice, enableDemoMode, refreshState, loading, config, lighting, setKeycode } = useKeyboard();
+  const { deviceState, requestDevice, enableDemoMode, refreshState, loading, config, lighting, setKeycode, macros } = useKeyboard();
   const [activeLayer, setActiveLayer] = useState(0);
   const [activeTab, setActiveTab] = useState<'Trigger Settings' | 'Key Bindings' | 'Advanced Functions' | 'Lighting Effects' | 'Macro Recording' | 'Switch Selection' | 'Mode Settings'>('Lighting Effects');
   const [selectedKey, setSelectedKey] = useState<{row: number, col: number, label: string} | null>(null);
@@ -125,6 +125,30 @@ export default function App() {
     }
   };
 
+  const handleBindMacroToSelectedKey = useCallback(async (slot: number) => {
+    if (!selectedKey) {
+      throw new Error('Select a key on the keyboard preview first.');
+    }
+
+    const macroKeycode = 0x7700 + slot;
+    const overrideKey = `${activeLayer},${selectedKey.row},${selectedKey.col}`;
+
+    setKeymapOverrides(prev => ({
+      ...prev,
+      [overrideKey]: `M${slot}`
+    }));
+
+    setHighlightedKeys(prev => {
+      const next = new Set(prev);
+      next.add(overrideKey);
+      return next;
+    });
+
+    if (deviceState.isConnected) {
+      await setKeycode(activeLayer, selectedKey.row, selectedKey.col, macroKeycode);
+    }
+  }, [activeLayer, deviceState.isConnected, selectedKey, setKeycode]);
+
   const toggleOsMode = () => {
     const newMode = osMode === 'Mac' ? 'Win' : 'Mac';
     setOsMode(newMode);
@@ -201,11 +225,11 @@ export default function App() {
           </div>
 
           {/* Keyboard Placeholder / Wireframe */}
-          <div className="w-full max-w-[800px] h-[180px] sm:h-[240px] md:h-[300px] border-2 border-gray-100 rounded-[24px] flex items-center justify-center bg-gray-50/50 overflow-hidden">
-             <div className="grid grid-cols-10 sm:grid-cols-12 md:grid-cols-15 gap-1.5 sm:gap-2 opacity-10 px-2">
+          <div className="w-full max-w-[800px] sm:w-[800px] h-[220px] sm:h-[300px] border-2 border-gray-100 rounded-[24px] flex items-center justify-center bg-gray-50/50 overflow-hidden">
+             <div className="grid grid-cols-12 sm:grid-cols-15 gap-1.5 sm:gap-2 opacity-10 px-2">
                 {/* Abstract grid to simulate keyboard */}
                 {Array.from({ length: 60 }).map((_, i) => (
-                  <div key={i} className="w-5 h-5 sm:w-7 sm:h-7 md:w-10 md:h-10 border border-gray-400 rounded-md"></div>
+                  <div key={i} className="w-7 h-7 sm:w-10 sm:h-10 border border-gray-400 rounded-md"></div>
                 ))}
              </div>
           </div>
@@ -455,7 +479,16 @@ export default function App() {
                 )}
                 
                 {activeTab === 'Macro Recording' && (
-                  <MacroRecording />
+                  <MacroRecording
+                    selectedKey={selectedKey}
+                    activeLayer={activeLayer}
+                    osMode={osMode}
+                    onBindMacroToSelectedKey={handleBindMacroToSelectedKey}
+                    deviceConnected={deviceState.isConnected}
+                    loadMacroStringsFromDevice={macros.loadStrings}
+                    saveMacroStringsToDevice={macros.saveStrings}
+                    resetMacroStringsOnDevice={macros.reset}
+                  />
                 )}
                 
                 {activeTab === 'Mode Settings' && (

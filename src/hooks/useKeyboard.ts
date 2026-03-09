@@ -7,6 +7,13 @@ import {
   getKeycode,
   loadKeymapLayer,
   setKeycode as setViaKeycode,
+  getMacroCount,
+  getMacroBufferSize,
+  getMacroBuffer,
+  setMacroBuffer,
+  resetMacros,
+  decodeMacroStringsFromBuffer,
+  encodeMacroStringsToBuffer,
   getBacklightBrightness,
   getBacklightEffect,
   setBacklightBrightness,
@@ -229,6 +236,36 @@ export function useKeyboard() {
     }
   };
 
+  const getMacroInfo = async (): Promise<{ count: number; bufferSize: number } | null> => {
+    if (!deviceState.device) return null;
+    const count = await getMacroCount(deviceState.device);
+    const bufferSize = await getMacroBufferSize(deviceState.device);
+    return { count, bufferSize };
+  };
+
+  const loadMacroStrings = async (): Promise<string[]> => {
+    if (!deviceState.device) return [];
+    const info = await getMacroInfo();
+    if (!info || info.count <= 0 || info.bufferSize <= 0) return [];
+    const raw = await getMacroBuffer(deviceState.device, info.bufferSize);
+    return decodeMacroStringsFromBuffer(raw, info.count);
+  };
+
+  const saveMacroStrings = async (macros: string[]): Promise<void> => {
+    if (!deviceState.device) return;
+    const info = await getMacroInfo();
+    if (!info || info.count <= 0 || info.bufferSize <= 0) {
+      throw new Error('Macro buffer is not available on this device');
+    }
+    const payload = encodeMacroStringsToBuffer(macros, info.count, info.bufferSize);
+    await setMacroBuffer(deviceState.device, payload);
+  };
+
+  const resetMacroStrings = async (): Promise<void> => {
+    if (!deviceState.device) return;
+    await resetMacros(deviceState.device);
+  };
+
   return {
     deviceState,
     requestDevice,
@@ -238,6 +275,12 @@ export function useKeyboard() {
     error,
     config: nuphyConfig,
     setKeycode,
+    macros: {
+      getInfo: getMacroInfo,
+      loadStrings: loadMacroStrings,
+      saveStrings: saveMacroStrings,
+      reset: resetMacroStrings
+    },
     lighting: {
       setBrightness,
       setEffect,

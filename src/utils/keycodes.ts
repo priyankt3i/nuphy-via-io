@@ -134,10 +134,28 @@ export const QMK_KEYCODES: Record<number, string> = {
   0x5F81: 'BRI-',
 };
 
-export function getKeyLabel(keycode: number): string {
+interface CustomKeycodeLike {
+  name: string;
+  title?: string;
+}
+
+const formatCustomKeycodeName = (raw: string): string => {
+  return raw.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+};
+
+export function getKeyLabel(keycode: number, customKeycodes?: CustomKeycodeLike[]): string {
   // Handle basic keycodes
   if (QMK_KEYCODES[keycode]) {
     return QMK_KEYCODES[keycode];
+  }
+
+  // VIA custom keyboard keycodes (QK_KB_0 ...). Use JSON labels when available.
+  if (keycode >= 0x7E00 && keycode <= 0x7EFF) {
+    const index = keycode - 0x7E00;
+    if (customKeycodes && customKeycodes[index]) {
+      return formatCustomKeycodeName(customKeycodes[index].name || customKeycodes[index].title || `KB${index}`);
+    }
+    return `KB${index}`;
   }
   
   // Handle MO(layer)
@@ -153,6 +171,19 @@ export function getKeyLabel(keycode: number): string {
   // Handle TG(layer)
   if (keycode >= 0x5240 && keycode <= 0x525F) {
       return `TG${keycode - 0x5240}`;
+  }
+
+  // Dynamic macro keycodes M0...M31
+  if (keycode >= 0x7700 && keycode <= 0x771F) {
+      return `M${keycode - 0x7700}`;
+  }
+
+  // QK_LAYER_TAP style range (common encoded layer+tap keycodes)
+  if (keycode >= 0x4000 && keycode <= 0x4FFF) {
+    const layer = (keycode >> 8) & 0x0f;
+    const tap = keycode & 0x00ff;
+    const tapLabel = QMK_KEYCODES[tap] || '?';
+    return `LT${layer}:${tapLabel}`;
   }
 
   return `0x${keycode.toString(16).toUpperCase()}`;

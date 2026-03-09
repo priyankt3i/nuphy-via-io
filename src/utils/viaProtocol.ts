@@ -283,3 +283,146 @@ export async function setBacklightColor(device: HIDDevice, hue: number, sat: num
         sat
     ]);
 }
+
+/**
+ * Gets dynamic macro slot count.
+ */
+export async function getMacroCount(device: HIDDevice): Promise<number> {
+  const response = await sendViaCommand(device, VIA_COMMAND_ID.DYNAMIC_KEYMAP_MACRO_GET_COUNT);
+  return response[1] || 0;
+}
+
+/**
+ * Gets dynamic macro buffer size in bytes.
+ */
+export async function getMacroBufferSize(device: HIDDevice): Promise<number> {
+  const response = await sendViaCommand(device, VIA_COMMAND_ID.DYNAMIC_KEYMAP_MACRO_GET_BUFFER_SIZE);
+  return ((response[1] || 0) << 8) | (response[2] || 0);
+}
+
+/**
+ * Reads raw bytes from dynamic macro buffer.
+ */
+export async function getMacroBuffer(
+  device: HIDDevice,
+  bufferSize: number
+): Promise<Uint8Array> {
+  const CHUNK_SIZE = 28; // 32-byte HID report minus 4-byte header
+  const out = new Uint8Array(bufferSize);
+
+  for (let offset = 0; offset < bufferSize; offset += CHUNK_SIZE) {
+    const size = Math.min(CHUNK_SIZE, bufferSize - offset);
+    const response = await sendViaCommand(device, VIA_COMMAND_ID.DYNAMIC_KEYMAP_MACRO_GET_BUFFER, [
+      (offset >> 8) & 0xFF,
+      offset & 0xFF,
+      size
+    ]);
+
+    for (let i = 0; i < size; i++) {
+      if (i + 4 < response.length) {
+        out[offset + i] = response[i + 4];
+      }
+    }
+  }
+
+  return out;
+}
+
+/**
+ * Writes raw bytes to dynamic macro buffer.
+ *
+ * Important: QMK expects the last byte as a validity flag while writing.
+ * Set it non-zero first, then write the final buffer with the last byte as zero.
+ */
+export async function setMacroBuffer(
+  device: HIDDevice,
+  data: Uint8Array
+): Promise<void> {
+  const CHUNK_SIZE = 28; // 32-byte HID report minus 4-byte header
+  if (data.length === 0) return;
+
+  const writeChunk = async (offset: number, bytes: Uint8Array) => {
+    await sendViaCommand(device, VIA_COMMAND_ID.DYNAMIC_KEYMAP_MACRO_SET_BUFFER, [
+      (offset >> 8) & 0xFF,
+      offset & 0xFF,
+      bytes.length,
+      ...Array.from(bytes),
+    ]);
+  };
+
+  // Mark buffer invalid first.
+  await writeChunk(data.length - 1, new Uint8Array([0xFF]));
+
+  // Write full payload.
+  for (let offset = 0; offset < data.length; offset += CHUNK_SIZE) {
+    const chunk = data.slice(offset, offset + CHUNK_SIZE);
+    await writeChunk(offset, chunk);
+  }
+
+  // Mark buffer valid by setting trailing byte to null.
+  await writeChunk(data.length - 1, new Uint8Array([0x00]));
+}
+
+/**
+ * Resets dynamic macro buffer to firmware defaults.
+ */
+export async function resetMacros(device: HIDDevice): Promise<void> {
+  await sendViaCommand(device, VIA_COMMAND_ID.DYNAMIC_KEYMAP_MACRO_RESET);
+}
+
+/**
+ * Decodes a macro buffer into null-terminated strings.
+ */
+export function decodeMacroStringsFromBuffer(
+  data: Uint8Array,
+  count: number
+): string[] {
+  const decoder = new TextDecoder();
+  const out: string[] = [];
+  let start = 0;
+
+  for (let i = 0; i < count; i++) {
+    let end = start;
+    while (end < data.length && data[end] !== 0) end++;
+    out.push(decoder.decode(data.slice(start, end)));
+    start = end + 1;
+    if (start > data.length) break;
+  }
+
+  while (out.length < count) out.push('');
+  return out;
+}
+
+/**
+ * Encodes null-terminated macro strings into a fixed-size buffer.
+ */
+export function encodeMacroStringsToBuffer(
+  macros: string[],
+  count: number,
+  bufferSize: number
+): Uint8Array {
+  const encoder = new TextEncoder();
+  const out = new Uint8Array(bufferSize);
+  const safeCount = Math.max(0, Math.min(count, macros.length));
+  let cursor = 0;
+
+  for (let i = 0; i < safeCount; i++) {
+    const bytes = encoder.encode(macros[i] || '');
+    const available = Math.max(0, (bufferSize - 1) - cursor);
+    const len = Math.min(bytes.length, available);
+    out.set(bytes.slice(0, len), cursor);
+    cursor += len;
+
+    if (cursor < bufferSize) {
+      out[cursor] = 0;
+      cursor += 1;
+    }
+  }
+
+  // Ensure validity byte is null.
+  if (bufferSize > 0) {
+    out[bufferSize - 1] = 0;
+  }
+
+  return out;
+}
