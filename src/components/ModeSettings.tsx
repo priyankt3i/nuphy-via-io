@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
-import { Gamepad2, Lock, Zap, Activity, Cpu } from 'lucide-react';
+import { Gamepad2, Lock, Zap, Activity, Cpu, AlertCircle } from 'lucide-react';
 
 export const ModeSettings = () => {
   const [winLock, setWinLock] = useState(false);
@@ -11,9 +11,39 @@ export const ModeSettings = () => {
   const [trickRate, setTrickRate] = useState(1);
   const [antiWobble, setAntiWobble] = useState(2);
   const [pollingRate, setPollingRate] = useState(1000);
+  const [toast, setToast] = useState<string | null>(null);
+
+  const showToast = (message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleLockToggle = (type: 'win' | 'altf4' | 'alttab', currentValue: boolean) => {
+    // Toggle the UI state
+    if (type === 'win') setWinLock(!currentValue);
+    if (type === 'altf4') setAltF4Lock(!currentValue);
+    if (type === 'alttab') setAltTabLock(!currentValue);
+    
+    // Show toast explaining it's not supported via standard VIA
+    showToast("This feature requires the official NuPhy Console and is not supported via standard VIA protocol.");
+  };
 
   return (
-    <div className="flex h-full w-full bg-gray-50 p-4 sm:p-8 overflow-y-auto">
+    <div className="flex h-full w-full bg-gray-50 p-8 overflow-y-auto relative">
+       <AnimatePresence>
+         {toast && (
+           <motion.div
+             initial={{ opacity: 0, y: 50 }}
+             animate={{ opacity: 1, y: 0 }}
+             exit={{ opacity: 0, y: 20 }}
+             className="fixed bottom-8 right-8 z-[100] flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border bg-white border-red-100"
+           >
+             <AlertCircle className="w-6 h-6 text-red-500" />
+             <span className="font-bold text-gray-900 text-sm">{toast}</span>
+           </motion.div>
+         )}
+       </AnimatePresence>
+
        <div className="max-w-3xl mx-auto w-full space-y-8">
           
           {/* Gaming Optimizations */}
@@ -28,10 +58,10 @@ export const ModeSettings = () => {
                 </div>
              </div>
 
-             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <LockToggle label="Lock Windows Key" checked={winLock} onChange={setWinLock} />
-                <LockToggle label="Lock Alt + F4" checked={altF4Lock} onChange={setAltF4Lock} />
-                <LockToggle label="Lock Alt + Tab" checked={altTabLock} onChange={setAltTabLock} />
+             <div className="grid grid-cols-3 gap-4">
+                <LockToggle label="Lock Windows Key" checked={winLock} onChange={() => handleLockToggle('win', winLock)} />
+                <LockToggle label="Lock Alt + F4" checked={altF4Lock} onChange={() => handleLockToggle('altf4', altF4Lock)} />
+                <LockToggle label="Lock Alt + Tab" checked={altTabLock} onChange={() => handleLockToggle('alttab', altTabLock)} />
              </div>
           </section>
 
@@ -55,7 +85,7 @@ export const ModeSettings = () => {
                    </h4>
                    <p className="text-xs text-gray-500 mt-1">Dynamically adjusts ranges to avoid disconnection issues</p>
                 </div>
-                <Toggle checked={gamingOptimization} onChange={setGamingOptimization} />
+                <Toggle checked={gamingOptimization} onChange={(v) => { setGamingOptimization(v); showToast("Performance tuning requires NuPhy Console."); }} />
              </div>
 
              {/* Trick Rate */}
@@ -70,7 +100,7 @@ export const ModeSettings = () => {
                   max="10" 
                   step="1"
                   value={trickRate}
-                  onChange={(e) => setTrickRate(parseInt(e.target.value))}
+                  onChange={(e) => { setTrickRate(parseInt(e.target.value)); showToast("Performance tuning requires NuPhy Console."); }}
                   className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
                 />
                 <p className="text-[10px] text-gray-400">Adjusts reporting intervals for compatibility with older systems</p>
@@ -86,7 +116,7 @@ export const ModeSettings = () => {
                    {[0, 1, 2, 3, 4].map(level => (
                      <button
                        key={level}
-                       onClick={() => setAntiWobble(level)}
+                       onClick={() => { setAntiWobble(level); showToast("Performance tuning requires NuPhy Console."); }}
                        className={cn(
                          "flex-1 py-2 rounded-lg text-xs font-bold transition-all border",
                          antiWobble === level 
@@ -113,7 +143,7 @@ export const ModeSettings = () => {
                    {[125, 250, 500, 1000].map(rate => (
                      <button
                        key={rate}
-                       onClick={() => setPollingRate(rate)}
+                       onClick={() => { setPollingRate(rate); showToast("Performance tuning requires NuPhy Console."); }}
                        className={cn(
                          "py-2 rounded-lg text-xs font-bold transition-all border",
                          pollingRate === rate 
@@ -150,7 +180,7 @@ const LockToggle = ({ label, checked, onChange }: { label: string, checked: bool
      )}>
         <Lock className="w-5 h-5" />
      </div>
-     <span className={cn("text-xs font-bold", checked ? "text-red-600" : "text-gray-500")}>{label}</span>
+     <span className={cn("text-xs font-bold text-center", checked ? "text-red-600" : "text-gray-500")}>{label}</span>
      <div className={cn("text-[10px] font-bold uppercase", checked ? "text-red-500" : "text-gray-400")}>
        {checked ? "LOCKED" : "UNLOCKED"}
      </div>
