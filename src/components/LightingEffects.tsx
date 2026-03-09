@@ -68,12 +68,69 @@ const COLOR_PRESETS = [
   '#FF5722', '#FFEB3B', '#00E676', '#2979FF', '#651FFF', '#F50057', '#D50000', '#FFC107', '#00B0FF', '#76FF03', '#3D5AFE', '#E040FB'
 ];
 
+// Color Conversion Helpers
+const hexToQmkHsv = (hex: string) => {
+  let r = 0, g = 0, b = 0;
+  hex = hex.replace('#', '');
+  if (hex.length === 3) {
+    r = parseInt(hex[0] + hex[0], 16);
+    g = parseInt(hex[1] + hex[1], 16);
+    b = parseInt(hex[2] + hex[2], 16);
+  } else if (hex.length === 6) {
+    r = parseInt(hex.substring(0, 2), 16);
+    g = parseInt(hex.substring(2, 4), 16);
+    b = parseInt(hex.substring(4, 6), 16);
+  }
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0;
+  const d = max - min;
+  s = max === 0 ? 0 : d / max;
+  if (max !== min) {
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h /= 6;
+  }
+  if (h < 0) h += 1;
+  return {
+    h: Math.round(h * 255),
+    s: Math.round(s * 255),
+    v: Math.round(max * 255)
+  };
+};
+
+const hsvToHex = (h: number, s: number, v: number) => {
+  let r = 0, g = 0, b = 0;
+  const i = Math.floor(h * 6);
+  const f = h * 6 - i;
+  const p = v * (1 - s);
+  const q = v * (1 - f * s);
+  const t = v * (1 - (1 - f) * s);
+  switch (i % 6) {
+    case 0: r = v, g = t, b = p; break;
+    case 1: r = q, g = v, b = p; break;
+    case 2: r = p, g = v, b = t; break;
+    case 3: r = p, g = q, b = v; break;
+    case 4: r = t, g = p, b = v; break;
+    case 5: r = v, g = p, b = q; break;
+  }
+  const toHex = (x: number) => {
+    const hex = Math.round(x * 255).toString(16);
+    return hex.length === 1 ? '0' + hex : hex;
+  };
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
+};
+
 export const LightingEffects: React.FC<LightingEffectsProps> = ({ lighting, deviceState }) => {
   const [activeEffect, setActiveEffect] = useState(3); // Default to Stair (value 3)
   const [brightness, setBrightness] = useState(100);
   const [speed, setSpeed] = useState(50);
   const [customColor, setCustomColor] = useState('#00E6CC');
-  const [customColorEnabled, setCustomColorEnabled] = useState(false);
+  const [hue, setHue] = useState(175); // ~ #00E6CC
+  const [customColorEnabled, setCustomColorEnabled] = useState(true);
   const [backlightEnabled, setBacklightEnabled] = useState(true);
   const [sidelightEnabled, setSidelightEnabled] = useState(true);
 
@@ -104,12 +161,50 @@ export const LightingEffects: React.FC<LightingEffectsProps> = ({ lighting, devi
 
   const handleColorChange = (color: string) => {
     setCustomColor(color);
-    // Simple mock conversion for now: Hue 0-255, Sat 255
-    lighting?.setColor(128, 255); 
+    if (/^#[0-9A-Fa-f]{6}$/i.test(color) || /^#[0-9A-Fa-f]{3}$/i.test(color)) {
+      const { h, s } = hexToQmkHsv(color);
+      setHue(Math.round((h / 255) * 360));
+      lighting?.setColor(h, s); 
+    }
+  };
+
+  const handleHueChange = (newHue: number) => {
+    setHue(newHue);
+    const hex = hsvToHex(newHue / 360, 1, 1);
+    setCustomColor(hex);
+    lighting?.setColor(Math.round((newHue / 360) * 255), 255);
   };
 
   return (
     <div className="flex h-full w-full bg-[#f5f5f5] p-6 gap-4 overflow-hidden">
+      <style>{`
+        .hue-slider {
+          -webkit-appearance: none;
+          appearance: none;
+          background: transparent;
+        }
+        .hue-slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 24px;
+          height: 24px;
+          background: white;
+          border: 2px solid #e5e7eb;
+          border-radius: 50%;
+          cursor: pointer;
+          box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+          margin-top: -2px;
+        }
+        .hue-slider::-moz-range-thumb {
+          width: 24px;
+          height: 24px;
+          background: white;
+          border: 2px solid #e5e7eb;
+          border-radius: 50%;
+          cursor: pointer;
+          box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+      `}</style>
       
       {/* Area 1: Toggles */}
       <div className="w-[260px] flex flex-col gap-4">
@@ -247,8 +342,15 @@ export const LightingEffects: React.FC<LightingEffectsProps> = ({ lighting, devi
                   <div className="absolute top-6 right-6 w-5 h-5 rounded-full border-2 border-white shadow-md ring-1 ring-black/10"></div>
                </div>
                
-               <div className="h-5 rounded-full bg-gradient-to-r from-red-500 via-green-500 to-blue-500 relative mt-2 shadow-inner">
-                  <div className="absolute top-1/2 -translate-y-1/2 left-1/2 w-6 h-6 bg-white rounded-full border-2 border-gray-200 shadow-md cursor-pointer"></div>
+               <div className="h-5 rounded-full relative mt-2 shadow-inner" style={{ background: 'linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)' }}>
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max="360" 
+                    value={hue}
+                    onChange={(e) => handleHueChange(parseInt(e.target.value))}
+                    className="hue-slider absolute inset-0 w-full h-full opacity-100 cursor-pointer m-0 p-0"
+                  />
                </div>
                
                <div className="flex items-center gap-3 bg-gray-50 p-3 rounded-xl border border-gray-200 mt-2">
